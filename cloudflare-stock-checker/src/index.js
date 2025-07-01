@@ -198,7 +198,7 @@ export default {
         config: {
           stores: STOCK_CONFIG.urls.map(item => ({ store: item.store, url: item.url })),
           sizes: STOCK_CONFIG.sizes_to_check,
-          cron: '*/30 * * * *'
+          cron: '*/10 * * * *'
         }
       }), {
         headers: { 'Content-Type': 'application/json' }
