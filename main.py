@@ -15,7 +15,6 @@ with open("config.json", "r") as config_file:
     config = json.load(config_file)
 
 urls_to_check = config["urls"]
-sizes_to_check = config["sizes_to_check"]
 sleep_min_seconds = config["sleep_min_seconds"]
 sleep_max_seconds = config["sleep_max_seconds"]
 
@@ -82,6 +81,7 @@ while True:
                 else:
                     url = item.get("url")
                     store = item.get("store")
+                    sizes_to_check = item.get("sizes", [])
                     driver.get(url)
                     print("--------------------------------")
                     print(f"Url {url} için: ")

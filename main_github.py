@@ -161,11 +161,12 @@ def setup_chrome_driver():
         print(f"❌ Chrome driver setup failed: {e}")
         return None
 
-def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, chat_id, config):
+def check_single_item(driver, item, telegram_enabled, bot_api, chat_id, config):
     """Tek item için stok kontrolü"""
     try:
         url = item.get("url")
         store = item.get("store", "").lower()
+        sizes_to_check = item.get("sizes", [])
         
         if not url or not store:
             print("⚠️ Invalid item configuration")
@@ -238,7 +239,6 @@ def main():
         return
         
     urls_to_check = config.get("urls", [])
-    sizes_to_check = config.get("sizes_to_check", [])
     
     if not urls_to_check:
         print("❌ No URLs to check in configuration")
@@ -263,7 +263,7 @@ def main():
             print(f"📦 Item {checked_count}/{len(urls_to_check)}")
             
             result = check_single_item(
-                driver, item, sizes_to_check, 
+                driver, item, 
                 telegram_enabled, bot_api, chat_id, config
             )
             
