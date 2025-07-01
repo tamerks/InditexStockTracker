@@ -1,0 +1,13 @@
+name = "stock-checker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cron job - her 30 dakikada bir çalışır
+[triggers]
+crons = ["*/30 * * * *"]  # Her 30 dakika
+
+# Environment variables (bu değerleri daha sonra Cloudflare dashboard'dan ekleyeceğiz)
+[vars]
+# BOT_API = "your_bot_token_here"
+# CHAT_ID = "your_chat_id_here"
