@@ -1,159 +1,129 @@
-# 🚀 Cloudflare Workers Stok Takip Sistemi
+# 🛍️ Zara Stock Checker
 
-Zara, Bershka ve Stradivarius için 7/24 çalışan **ücretsiz** stok takip sistemi.
+Zara, Bershka ve Stradivarius mağazalarında otomatik stok takibi yapan Python projesi. GitHub Actions kullanarak cloud'da ücretsiz çalışır.
 
 ## ✨ Özellikler
 
-- 🆓 **Tamamen ücretsiz** (Cloudflare Workers Free Plan)
-- ⏰ **7/24 otomatik çalışma** (her 10 dakikada kontrol)
-- 📱 **Telegram bildirimleri**
-- 🛍️ **3 mağaza desteği**: Zara, Bershka, Stradivarius
-- 📏 **Çoklu beden takibi**: 36, 38, S, M
-- 🌐 **Sunucusuz (Serverless)** - bakım gerektirmez
+- 🔄 **Otomatik Kontrol:** Her 10 dakikada bir stok kontrolü
+- 🌐 **Multi-Store:** Zara, Bershka, Stradivarius desteği  
+- 📱 **Telegram Bildirimleri:** Stok bulunduğunda anında haber
+- 🔒 **Bot Detection Bypass:** Selenium ile gerçek browser kullanımı
+- ☁️ **Cloud Çalışma:** GitHub Actions ile ücretsiz hosting
+- 🆓 **Tamamen Ücretsiz:** GitHub Actions 2000 dakika/ay limit
 
-## 🔧 Kurulum
+## 🚀 Kurulum
 
-### 1. Ön Gereksinimler
+### 1. Repository'yi Fork Edin
+Bu repository'yi kendi GitHub hesabınıza fork edin.
 
-```bash
-# Node.js kurulu olmalı (zaten var)
-node --version
+### 2. Telegram Bot Oluşturun
+1. [@BotFather](https://t.me/botfather)'a `/newbot` gönderin
+2. Bot token'ınızı kaydedin (örn: `1234567890:ABC...`)
+3. Chat ID'nizi öğrenmek için [@userinfobot](https://t.me/userinfobot)'a mesaj gönderin
 
-# Wrangler CLI kur
-npm install -g wrangler
-```
+### 3. GitHub Secrets Ayarlayın
+Repository Settings > Secrets and Variables > Actions:
 
-### 2. Cloudflare Hesabı
+- **BOT_API:** Telegram bot token'ınız
+- **CHAT_ID:** Telegram chat ID'niz
 
-1. [Cloudflare.com](https://cloudflare.com)'da ücretsiz hesap oluşturun
-2. Workers sekmesine gidin
+### 4. Ürün URL'lerini Yapılandırın
+`config.json` dosyasını düzenleyin:
 
-### 3. Proje Kurulumu
-
-```bash
-# Bu klasöre gidin
-cd cloudflare-stock-checker
-
-# Bağımlılıkları yükleyin
-npm install -g wrangler
-
-# Cloudflare'e giriş yapın
-wrangler login
-```
-
-### 4. Environment Variables (Çevresel Değişkenler)
-
-Telegram bot bilgilerinizi Cloudflare'de ayarlayın:
-
-```bash
-# Bot tokenınızı ekleyin
-wrangler secret put BOT_API
-
-# Chat ID'nizi ekleyin  
-wrangler secret put CHAT_ID
-```
-
-**Veya Cloudflare Dashboard'dan:**
-1. Workers & Pages > stock-checker > Settings > Variables
-2. "Environment Variables" bölümüne ekleyin:
-   - `BOT_API`: `7431981826:AAE3JlyFphcVFPCMHyqGXMYAvylIHF6NdZo`
-   - `CHAT_ID`: `503294787`
-
-### 5. Deploy (Dağıtım)
-
-```bash
-# Worker'ı Cloudflare'ye yükle
-wrangler deploy
-```
-
-## 🎯 Kullanım
-
-### Otomatik Çalışma
-- Worker her 10 dakikada otomatik çalışır
-- Stok bulunca Telegram mesajı gönderir
-
-### Manuel Test
-```bash
-# Canlı URL (deploy sonrası alacaksınız):
-curl https://stock-checker.your-subdomain.workers.dev/test
-```
-
-### Durum Kontrolü
-```bash
-curl https://stock-checker.your-subdomain.workers.dev/status
-```
-
-## 📱 Telegram Mesaj Örneği
-
-```
-🛍️ 38 beden stokta!!!!
-Mağaza: ZARA
-Link: https://www.zara.com/tr/tr/...
-```
-
-## ⚙️ Yapılandırma
-
-Ürün listesini değiştirmek için `src/index.js` dosyasındaki `STOCK_CONFIG` bölümünü düzenleyin:
-
-```javascript
-const STOCK_CONFIG = {
-  urls: [
+```json
+{
+  "urls": [
     {
-      store: "zara",
-      url: "https://www.zara.com/tr/tr/yeni-urun-linki"
+      "store": "zara",
+      "url": "https://www.zara.com/tr/tr/urun-linki"
     }
   ],
-  sizes_to_check: ["36", "38", "S", "M", "L"]
-};
+  "sizes_to_check": ["36", "38", "S", "M"]
+}
 ```
 
-## 🔍 Logları Görme
+## 📁 Dosya Yapısı
 
+```
+├── .github/workflows/
+│   └── stock-checker.yml      # GitHub Actions workflow
+├── main_github.py            # Ana stock checker (GitHub Actions için)
+├── main.py                   # Lokal kullanım için
+├── scraperHelpers.py         # Scraping fonksiyonları  
+├── config.json               # Konfigürasyon
+└── requirements.txt          # Python dependencies
+```
+
+## 🔧 Kullanım
+
+### Otomatik Çalışma
+- GitHub Actions her 10 dakikada otomatik çalışır
+- Stok bulunduğunda Telegram'a bildirim gönderir
+
+### Manuel Test
+1. Repository > Actions > "Zara Stock Checker"
+2. "Run workflow" butonuna tıklayın
+3. Log'ları takip edin
+
+### Lokal Çalışma
 ```bash
-# Canlı logları izle
-wrangler tail
+# Dependencies yükle
+pip install -r requirements.txt
+
+# Tek seferlik kontrol
+python main_github.py
+
+# Sürekli çalışma (sonsuz döngü)
+python main.py
 ```
 
-## 📊 Maliyet
+## ⚙️ Konfigürasyon
 
-- **Cloudflare Workers Free Plan:**
-  - 100,000 request/gün (yeterli)
-  - 10ms CPU time/request
-  - **Tamamen ücretsiz!**
+### Desteklenen Mağazalar
+- **Zara:** `"store": "zara"`
+- **Bershka:** `"store": "bershka"`  
+- **Stradivarius:** `"store": "stradivarius"`
 
-## 🆚 Selenium vs Cloudflare Workers
+### Beden Formatları
+- **Sayısal:** `"36", "38", "40"`
+- **Harf:** `"XS", "S", "M", "L", "XL"`
 
-| Özellik | Selenium (Eski) | Cloudflare Workers (Yeni) |
-|---------|-----------------|---------------------------|
-| **Maliyet** | Bilgisayar açık | Ücretsiz |
-| **Çalışma** | Manual | 7/24 Otomatik |
-| **Hız** | Yavaş (tarayıcı) | Hızlı (direkt HTTP) |
-| **Güvenilirlik** | Orta | Yüksek |
-| **Bakım** | Gerekli | Sıfır |
+## 📊 GitHub Actions Detayları
 
-## 🔧 Troubleshooting
+- **Çalışma Sıklığı:** Her 10 dakika (`*/10 * * * *`)
+- **Timeout:** 15 dakika maksimum
+- **Chrome Version:** Otomatik güncel
+- **Python Version:** 3.9
+- **OS:** Ubuntu Latest
 
-### Worker çalışmıyor
-```bash
-wrangler tail  # Logları kontrol et
-```
+## 🐛 Sorun Giderme
 
-### Environment variables eksik
-```bash
-wrangler secret list  # Mevcut secret'ları gör
-wrangler secret put BOT_API  # Yeniden ekle
-```
+### Actions Log'larını Kontrol Edin
+1. Repository > Actions
+2. Son çalışmaya tıklayın
+3. "Run stock checker" adımını açın
 
-### Deploy sorunu
-```bash
-wrangler login  # Yeniden giriş yap
-wrangler deploy  # Tekrar deploy et
-```
+### Yaygın Sorunlar
+- **Telegram mesajı gelmiyorsa:** BOT_API ve CHAT_ID secrets'larını kontrol edin
+- **Stok bulamıyorsa:** URL'lerin güncel olduğundan emin olun
+- **Actions çalışmıyorsa:** Repository'nin public olduğundan emin olun
 
-## 🎉 Başarı!
+## 🤝 Katkıda Bulunma
 
-Artık sisteminiz 7/24 çalışıyor! Stok bulunduğunda Telegram'dan bildirim alacaksınız.
+1. Fork edin
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit edin (`git commit -m 'Add some amazing feature'`)
+4. Push edin (`git push origin feature/amazing-feature`)
+5. Pull Request açın
 
-## 📞 Destek
+## 📄 Lisans
 
-Sorun yaşarsanız `wrangler tail` komutuyla logları kontrol edin veya bana ulaşın.
+Bu proje MIT lisansı altında lisanslanmıştır.
+
+## ⚠️ Yasal Uyarı
+
+Bu araç sadece eğitim amaçlıdır. Web scraping yaparken hedef sitenin kullanım şartlarına uygun hareket edin.
+
+---
+
+**💡 İpucu:** GitHub Actions ile tamamen ücretsiz ve otomatik çalışan stok takip sistemi!
