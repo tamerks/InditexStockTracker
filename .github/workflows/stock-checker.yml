@@ -20,7 +20,7 @@ on:
 jobs:
   super-fast-stock-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 4  # Maximum 4 dakika - hızlı execution
+    timeout-minutes: 8  # Maximum 8 dakika - 9 ürün için yeterli
     permissions:
       contents: write  # Git commit + push permissions
     
@@ -53,7 +53,7 @@ jobs:
     - name: ⚡ Fast Stock Check
       run: |
         echo "⚡ Super Fast Check - $(date '+%H:%M:%S')"
-        timeout 180 python main_github.py || echo "⚠️ Timeout or completed"
+        timeout 360 python main_github.py || echo "⚠️ Timeout or completed"
       env:
         BOT_API: ${{ secrets.BOT_API }}
         CHAT_ID: ${{ secrets.CHAT_ID }}
