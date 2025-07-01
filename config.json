@@ -1,28 +1,13 @@
 {
-    "urls": [
-        {
-            "store": "zara",
-            "url": "https://www.zara.com/tr/tr/desenli-kisa-tul-elbise-p05039132.html?v1=442763765&v2=2580270"
-        },
-        {
-            "store": "stradivarius",
-            "url": "https://www.stradivarius.com/tr/pensli-ve-dokumlu-straight-fit-pantolon-l04562600"
-        },
-        {
-            "store": "zara",
-            "url": "https://www.zara.com/tr/tr/asimetrik-cift-t-shirt-p05644213.html?v1=441578999&utm_campaign=productShare&utm_medium=mobile_sharing_iOS&utm_source=red_social_movil#utm_referrer=https%3A%2F%2Fwww.zara.com%2Fshare%2Fasimetrik-cift-t-shirt-p05644213.html%3Fv1%3D441578999%26utm_campaign%3DproductShare%26utm_medium%3Dmobile_sharing_iOS%26utm_source%3Dred_social_movil"
-        },
-        {
-            "store": "zara",
-            "url": "https://www.zara.com/tr/tr/halter-strec-top-p00085339.html?v1=444436822"
-        }
-    ],
-    "sizes_to_check": [
-        "36",
-        "38",
-        "S",
-        "M"
-    ],
-    "sleep_min_seconds": 12,
-    "sleep_max_seconds": 22
+  "urls": [
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/tr/desenli-kisa-tul-elbise-p05039132.html?v1=442763765&v2=2580270"
+    },
+    {
+      "store": "zara", 
+      "url": "https://www.zara.com/tr/tr/halter-strec-top-p00085339.html?v1=444436822"
+    }
+  ],
+  "sizes_to_check": ["36", "38", "S", "M"]
 }

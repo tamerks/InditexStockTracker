@@ -22,6 +22,31 @@ def load_config():
         print("❌ config.json file not found!")
         return None
 
+def save_config(config):
+    """Config dosyasını kaydet"""
+    try:
+        with open("config.json", "w") as config_file:
+            json.dump(config, config_file, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"❌ Config save failed: {e}")
+        return False
+
+def remove_item_from_config(config, item_to_remove):
+    """Stok bulunan ürünü config'den çıkar"""
+    try:
+        original_count = len(config.get("urls", []))
+        config["urls"] = [item for item in config.get("urls", []) if item["url"] != item_to_remove["url"]]
+        removed = original_count - len(config["urls"])
+        
+        if removed > 0:
+            print(f"🗑️ Removed {removed} item from config (stock found)")
+            return save_config(config)
+        return False
+    except Exception as e:
+        print(f"❌ Remove item error: {e}")
+        return False
+
 def setup_telegram():
     """Telegram credentials setup"""
     BOT_API = os.getenv("BOT_API")
@@ -105,7 +130,7 @@ def setup_chrome_driver():
         print(f"❌ Chrome driver setup failed: {e}")
         return None
 
-def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, chat_id):
+def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, chat_id, config):
     """Tek item için stok kontrolü"""
     try:
         url = item.get("url")
@@ -137,13 +162,18 @@ def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, c
             return False
             
         if size_in_stock:
+            # Ürünü config'den çıkar (sürekli bildirim gelmesin)
+            removed = remove_item_from_config(config, item)
+            
             message = f"🛍️ <b>STOK BULUNDU!</b>\n\n" \
                      f"📏 Beden: <b>{size_in_stock}</b>\n" \
                      f"🏪 Mağaza: <b>{store.upper()}</b>\n" \
                      f"🔗 <a href='{url}'>Ürün Linki</a>\n" \
-                     f"⏰ Zaman: {time.strftime('%H:%M:%S')}"
+                     f"⏰ Zaman: {time.strftime('%H:%M:%S')}\n\n" \
+                     f"{'🗑️ Ürün listeden otomatik çıkarıldı' if removed else '⚠️ Manuel listeden çıkarmanız gerekiyor'}"
             
-            print(f"🎉 ALERT: {message}")
+            print(f"🎉 STOCK FOUND: {size_in_stock} - {store.upper()}")
+            print(f"🗑️ Auto-removed from list: {removed}")
             
             if telegram_enabled:
                 send_telegram_message(message, bot_api, chat_id)
@@ -201,7 +231,7 @@ def main():
             
             result = check_single_item(
                 driver, item, sizes_to_check, 
-                telegram_enabled, bot_api, chat_id
+                telegram_enabled, bot_api, chat_id, config
             )
             
             if result:
@@ -222,21 +252,33 @@ def main():
         driver.quit()
         
     # Fast summary
+    remaining_items = len(config.get("urls", []))
     print(f"\n⚡ FAST SUMMARY")
     print(f"✅ Checked: {checked_count} | 🛍️ Found: {'YES' if found_stock else 'NO'}")
-    print(f"⏱️ End: {time.strftime('%H:%M:%S')} | 🏁 Next check in 5min")
+    print(f"📋 Remaining items: {remaining_items} | ⏱️ End: {time.strftime('%H:%M:%S')}")
+    print(f"🏁 Next check in 5min" if remaining_items > 0 else "🎯 All items found - add new items to config.json")
     
-    # Telegram summary (only for errors or every 12th check = 1 hour)
-    # Don't spam Telegram every 5 minutes - only send errors or hourly summary
-    current_minute = int(time.strftime('%M'))
-    send_summary = telegram_enabled and not found_stock and (current_minute % 60 == 0)
-    
-    if send_summary:
-        summary_message = f"⚡ <b>Hourly Stock Summary</b>\n\n" \
-                         f"✅ System running every 5 min\n" \
-                         f"❌ No stock found this hour\n" \
-                         f"⏰ {time.strftime('%H:%M')}"
-        send_telegram_message(summary_message, bot_api, chat_id)
+    # Telegram summary and special cases
+    if telegram_enabled:
+        current_minute = int(time.strftime('%M'))
+        
+        # If no items left, send completion message
+        if remaining_items == 0:
+            completion_message = f"🎯 <b>Tüm Ürünler Bulundu!</b>\n\n" \
+                               f"✅ Checked: {checked_count} items\n" \
+                               f"🛍️ All stocks found and removed\n" \
+                               f"📝 Add new items to config.json\n" \
+                               f"⏰ {time.strftime('%H:%M')}"
+            send_telegram_message(completion_message, bot_api, chat_id)
+        
+        # Send hourly summary only if items remain and no stock found
+        elif not found_stock and (current_minute % 60 == 0):
+            summary_message = f"⚡ <b>Hourly Stock Summary</b>\n\n" \
+                             f"✅ System running every 5 min\n" \
+                             f"📋 {remaining_items} items being tracked\n" \
+                             f"❌ No stock found this hour\n" \
+                             f"⏰ {time.strftime('%H:%M')}"
+            send_telegram_message(summary_message, bot_api, chat_id)
 
 if __name__ == "__main__":
     main() 

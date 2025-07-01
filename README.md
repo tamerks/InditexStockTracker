@@ -4,12 +4,14 @@ Zara, Bershka ve Stradivarius mağazalarında otomatik stok takibi yapan Python 
 
 ## ✨ Özellikler
 
-- 🔄 **Otomatik Kontrol:** Her 10 dakikada bir stok kontrolü
+- ⚡ **Süper Hızlı:** Her 5 dakikada bir stok kontrolü (GitHub Actions minimum)
+- 🚀 **Optimize Performans:** ~2 dakikada execution, maximum speed
 - 🌐 **Multi-Store:** Zara, Bershka, Stradivarius desteği  
-- 📱 **Telegram Bildirimleri:** Stok bulunduğunda anında haber
+- 📱 **Akıllı Bildirimler:** Stok bulunduğunda anında haber, spam yok
+- 🗑️ **Otomatik Temizlik:** Bulunan ürünler listeden otomatik çıkar
 - 🔒 **Bot Detection Bypass:** Selenium ile gerçek browser kullanımı
 - ☁️ **Cloud Çalışma:** GitHub Actions ile ücretsiz hosting
-- 🆓 **Tamamen Ücretsiz:** GitHub Actions 2000 dakika/ay limit
+- 🆓 **Tamamen Ücretsiz:** Public repo'da unlimited minutes
 
 ## 🚀 Kurulum
 
@@ -90,10 +92,11 @@ python main.py
 
 ## 📊 GitHub Actions Detayları
 
-- **Çalışma Sıklığı:** Her 10 dakika (`*/10 * * * *`)
-- **Timeout:** 15 dakika maksimum
-- **Chrome Version:** Otomatik güncel
-- **Python Version:** 3.9
+- **Çalışma Sıklığı:** Her 5 dakika (`*/5 * * * *`) - GitHub minimum limit
+- **Execution Time:** ~2 dakika (süper optimize)
+- **Timeout:** 4 dakika maksimum (180s hard limit)
+- **Chrome:** Pre-installed, all features disabled for speed
+- **Python:** 3.9 with cached dependencies
 - **OS:** Ubuntu Latest
 
 ## 🐛 Sorun Giderme
@@ -124,6 +127,20 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 Bu araç sadece eğitim amaçlıdır. Web scraping yaparken hedef sitenin kullanım şartlarına uygun hareket edin.
 
+## ⚡ Performans Optimizasyonları
+
+### **Speed Features:**
+- **Sparse Checkout:** Sadece gerekli dosyalar indirilir
+- **Cached Dependencies:** Python paketleri cache'den yüklenir  
+- **Chrome Optimizations:** Images, CSS, JS disabled
+- **Smart Timeouts:** 15s page load, 5s implicit wait
+- **Fast Transitions:** 1-2s delays between checks
+
+### **Smart Notifications:**
+- **Instant Alerts:** Stok bulunduğunda anında Telegram
+- **No Spam:** Stok yoksa sadece saatlik özet
+- **Auto Remove:** Bulunan ürünler config'den otomatik silinir
+
 ---
 
-**💡 İpucu:** GitHub Actions ile tamamen ücretsiz ve otomatik çalışan stok takip sistemi!
+**⚡ İpucu:** Süper hızlı (5 dakika), tamamen ücretsiz ve akıllı stok takip sistemi!
