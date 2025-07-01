@@ -123,9 +123,29 @@ python main.py
 
 Bu proje MIT lisansı altında lisanslanmıştır.
 
-## ⚠️ Yasal Uyarı
+## ⚠️ Yasal Uyarı ve Sorumluluk Reddi
 
-Bu araç sadece eğitim amaçlıdır. Web scraping yaparken hedef sitenin kullanım şartlarına uygun hareket edin.
+**ÖNEMLI:** Bu proje sadece **eğitim ve araştırma amaçlı**dır.
+
+### 🚨 **Kullanım Sınırlamaları:**
+- Bu araç yalnızca **kişisel, ticari olmayan** amaçlarla kullanılmalıdır
+- Hedef sitelerin **Terms of Service**'ini ihlal edebilir
+- Kullanıcı kendi sorumluluğunda hareket eder
+- **Yasal sorumluluk** kullanıcıya aittir
+
+### ⚖️ **Tavsiye Edilen Kullanım:**
+- Satın almayı planladığınız **kendi ürünleriniz** için kullanın
+- **Makul frekans**ta çalıştırın (günde birkaç kez)
+- **Ticari amaçla kullanmayın**
+- Sites'in **rate limiting**'ine uyun
+
+### 🛡️ **Yasal Alternatifler:**
+- Resmi mobil uygulamaları kullanın
+- Newsletter'lara kaydolun  
+- Resmi notification sistemlerini tercih edin
+- Açık API'ler varsa onları kullanın
+
+**Bu araçı kullanarak, tüm yasal riskleri kabul ettiğinizi beyan edersiniz.**
 
 ## ⚡ Performans Optimizasyonları
 
