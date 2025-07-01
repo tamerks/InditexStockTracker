@@ -14,12 +14,16 @@ import sys
 # Function to check stock availability (For ZARA)
 def check_stock_zara(driver, sizes_to_check):
     try:
-        wait = WebDriverWait(driver, 60)
+        # GitHub Actions için daha kısa timeout
+        is_github_actions = os.getenv('GITHUB_ACTIONS')
+        timeout = 10 if is_github_actions else 60
+        wait = WebDriverWait(driver, timeout)
 
         # Close the cookie alert if it appears
         try:
             print("Checking for cookie alert...")
-            accept_cookies_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
+            cookie_wait = WebDriverWait(driver, 5)  # Cookie için kısa timeout
+            accept_cookies_button = cookie_wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
             accept_cookies_button.click()
             print("Cookie alert closed successfully.")
         except TimeoutException:
@@ -107,12 +111,16 @@ def rossmannStockCheck(driver):
 
 def check_stock_bershka(driver, sizes_to_check):
     try:
-        wait = WebDriverWait(driver, 10)
+        # GitHub Actions için optimize edilmiş timeout
+        is_github_actions = os.getenv('GITHUB_ACTIONS')
+        timeout = 8 if is_github_actions else 10
+        wait = WebDriverWait(driver, timeout)
 
         # Handle cookie popup if present
         try:
             print("Checking for cookie alert...")
-            accept_cookies_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
+            cookie_wait = WebDriverWait(driver, 3)  # Cookie için kısa timeout
+            accept_cookies_button = cookie_wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
             accept_cookies_button.click()
             print("Cookie alert closed.")
         except Exception:
@@ -171,12 +179,16 @@ def watsonsChecker(driver):
 
 def check_stock_stradivarius(driver, sizes_to_check):
     try:
-        wait = WebDriverWait(driver, 60)
+        # GitHub Actions için optimize edilmiş timeout
+        is_github_actions = os.getenv('GITHUB_ACTIONS')
+        timeout = 10 if is_github_actions else 60
+        wait = WebDriverWait(driver, timeout)
         
         # Close the cookie alert if it appears
         try:
             print("Checking for cookie alert...")
-            accept_cookies_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
+            cookie_wait = WebDriverWait(driver, 5)  # Cookie için kısa timeout
+            accept_cookies_button = cookie_wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
             accept_cookies_button.click()
             print("Cookie alert closed successfully.")
         except TimeoutException:

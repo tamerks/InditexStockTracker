@@ -124,8 +124,7 @@ def setup_chrome_driver():
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-plugins")
     chrome_options.add_argument("--disable-images")
-    chrome_options.add_argument("--disable-javascript")
-    chrome_options.add_argument("--disable-css")
+    # JavaScript'i tamamen kapatmak Zara için sorunlu - sadece resim ve CSS'i kapat
     chrome_options.add_argument("--disable-fonts")
     chrome_options.add_argument("--disable-logging")
     chrome_options.add_argument("--disable-notifications")
@@ -182,16 +181,20 @@ def check_single_item(driver, item, telegram_enabled, bot_api, chat_id, config):
         
         size_in_stock = None
         
-        # Store'a göre stok kontrolü
-        if store == "zara":
-            size_in_stock = check_stock_zara(driver, sizes_to_check)
-        elif store == "bershka":
-            size_in_stock = check_stock_bershka(driver, sizes_to_check)
-        elif store == "stradivarius":
-            size_in_stock = check_stock_stradivarius(driver, sizes_to_check)
-        else:
-            print(f"❌ Unsupported store: {store}")
-            return False
+        # Store'a göre stok kontrolü - timeout'a karşı robust error handling
+        try:
+            if store == "zara":
+                size_in_stock = check_stock_zara(driver, sizes_to_check)
+            elif store == "bershka":
+                size_in_stock = check_stock_bershka(driver, sizes_to_check)
+            elif store == "stradivarius":
+                size_in_stock = check_stock_stradivarius(driver, sizes_to_check)
+            else:
+                print(f"❌ Unsupported store: {store}")
+                return False
+        except Exception as e:
+            print(f"⚠️ Store checker failed for {store}: {e}")
+            size_in_stock = None
             
         if size_in_stock:
             # Ürünü config'den çıkar (sürekli bildirim gelmesin)
