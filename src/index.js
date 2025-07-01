@@ -5,6 +5,10 @@
 const STOCK_CONFIG = {
   urls: [
     {
+      store: "zara", 
+      url: "https://www.zara.com/tr/tr/desenli-kisa-tul-elbise-p05039132.html?v1=442763765&v2=2580270"
+    },
+    {
       store: "stradivarius", 
       url: "https://www.stradivarius.com/tr/pensli-ve-dokumlu-straight-fit-pantolon-l04562600"
     },

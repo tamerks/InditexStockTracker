@@ -3,9 +3,9 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Cron job - her 30 dakikada bir çalışır
+# Cron job - her 10 dakikada bir çalışır
 [triggers]
-crons = ["*/30 * * * *"]  # Her 30 dakika
+crons = ["*/10 * * * *"]  # Her 10 dakika
 
 # Environment variables (bu değerleri daha sonra Cloudflare dashboard'dan ekleyeceğiz)
 [vars]
