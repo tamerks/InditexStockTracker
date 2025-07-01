@@ -72,20 +72,28 @@ function getRandomUserAgent() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
-// Zara stok kontrolü
+// Zara stok kontrolü (Bot Detection Bypass ile)
 async function checkStockZara(url, sizesToCheck) {
   try {
     console.log(`🔍 Checking Zara: ${url}`);
     
+    // Advanced headers to bypass bot detection
     const response = await fetch(url, {
       headers: {
-        'User-Agent': getRandomUserAgent(),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'tr-TR,tr;q=0.8,en-US;q=0.5,en;q=0.3',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
-        'Connection': 'keep-alive',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Cache-Control': 'max-age=0',
+        'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"macOS"',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
         'Upgrade-Insecure-Requests': '1',
+        'Connection': 'keep-alive'
       }
     });
 
@@ -96,17 +104,61 @@ async function checkStockZara(url, sizesToCheck) {
 
     const html = await response.text();
     
-    // Zara'da stok bilgisi JSON'da gömülü olarak geliyor
-    // window.__INITIAL_STATE__ veya benzer bir yapıda bulabiliriz
+    // Bot detection sayfası kontrolü
+    if (html.includes('bm-verify') || html.includes('interstitial') || html.includes('challenge')) {
+      console.log('⚠️ Zara bot detection triggered. Trying alternative approach...');
+      
+      // Alternative API endpoint deneyelim (Zara'nın AJAX endpoint'i olabilir)
+      const productId = url.match(/p(\d+)/)?.[1];
+      if (productId) {
+        const apiUrl = `https://www.zara.com/tr/tr/products/${productId}.json`;
+        try {
+          const apiResponse = await fetch(apiUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+              'Accept': 'application/json, text/plain, */*',
+              'Referer': url
+            }
+          });
+          
+          if (apiResponse.ok) {
+            const productData = await apiResponse.json();
+            console.log('✅ Using Zara API endpoint');
+            
+            if (productData.detail && productData.detail.colors) {
+              for (const color of productData.detail.colors) {
+                if (color.sizes) {
+                  for (const size of color.sizes) {
+                    const sizeValue = size.value || size.name;
+                    if (sizesToCheck.includes(sizeValue) && size.availability === 'in_stock') {
+                      console.log(`✅ Zara API - ${sizeValue} size is in stock!`);
+                      return sizeValue;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (apiError) {
+          console.log('⚠️ Zara API endpoint failed:', apiError);
+        }
+      }
+      
+      // Eğer API de çalışmazsa farklı parsing deneyelim
+      console.log('🔍 Parsing bot detection page for product info...');
+      return null;
+    }
+    
+    // Normal HTML parsing
+    console.log('📄 Parsing regular Zara page...');
+    
+    // Method 1: window.__INITIAL_STATE__
     const jsonRegex = /window\.__INITIAL_STATE__\s*=\s*({.*?});/s;
     const match = html.match(jsonRegex);
     
     if (match) {
       try {
         const initialState = JSON.parse(match[1]);
-        
-        // Zara'nın JSON yapısında size bilgilerini ara
-        // Bu yapı değişebilir, farklı yollar denememiz gerekebilir
         const product = initialState?.product || initialState?.products?.[0];
         
         if (product && product.detail && product.detail.colors) {
@@ -115,7 +167,7 @@ async function checkStockZara(url, sizesToCheck) {
               for (const size of color.sizes) {
                 const sizeValue = size.value || size.name;
                 if (sizesToCheck.includes(sizeValue) && size.availability === 'in_stock') {
-                  console.log(`✅ Zara - ${sizeValue} size is in stock!`);
+                  console.log(`✅ Zara JSON - ${sizeValue} size is in stock!`);
                   return sizeValue;
                 }
               }
@@ -127,22 +179,54 @@ async function checkStockZara(url, sizesToCheck) {
       }
     }
     
-    // JSON yöntemi çalışmazsa HTML parsing dene
-    // Zara genellikle size bilgilerini script tag'lerinde saklar
-    const sizeRegex = /"sizes":\s*\[(.*?)\]/g;
-    const sizeMatches = [...html.matchAll(sizeRegex)];
+    // Method 2: Script tag içindeki JSON yapıları
+    const scriptRegex = /<script[^>]*>(.*?)<\/script>/gs;
+    const scripts = html.match(scriptRegex) || [];
     
-    for (const sizeMatch of sizeMatches) {
+    for (const script of scripts) {
       try {
-        const sizesJson = JSON.parse(`[${sizeMatch[1]}]`);
-        for (const sizeData of sizesJson) {
-          if (sizeData.value && sizesToCheck.includes(sizeData.value) && sizeData.availability === 'in_stock') {
-            console.log(`✅ Zara - ${sizeData.value} size is in stock!`);
-            return sizeData.value;
+        // Size bilgisi içeren JSON yapıları ara
+        const sizeDataRegex = /"sizes":\s*\[([^\]]+)\]/g;
+        const sizeMatches = script.match(sizeDataRegex);
+        
+        if (sizeMatches) {
+          for (const sizeMatch of sizeMatches) {
+            try {
+              const sizesData = JSON.parse(`{${sizeMatch}}`);
+              if (sizesData.sizes) {
+                for (const size of sizesData.sizes) {
+                  const sizeValue = size.value || size.name || size.size;
+                  if (sizesToCheck.includes(sizeValue) && (size.availability === 'in_stock' || size.stock > 0)) {
+                    console.log(`✅ Zara Script - ${sizeValue} size is in stock!`);
+                    return sizeValue;
+                  }
+                }
+              }
+            } catch (e) {
+              continue;
+            }
           }
         }
       } catch (e) {
         continue;
+      }
+    }
+    
+    // Method 3: HTML attribute parsing
+    const sizeSelectors = [
+      /data-qa-qualifier="size-selector-sizes-size-label"[^>]*>([^<]+).*?data-qa-action="size-in-stock"/g,
+      /class="[^"]*size[^"]*"[^>]*>([^<]+).*?(?:in-stock|available)/g,
+      /data-size="([^"]+)"[^>]*class="[^"]*(?:available|in-stock)/g
+    ];
+    
+    for (const selector of sizeSelectors) {
+      let match;
+      while ((match = selector.exec(html)) !== null) {
+        const sizeValue = match[1].trim();
+        if (sizesToCheck.includes(sizeValue)) {
+          console.log(`✅ Zara HTML - ${sizeValue} size is in stock!`);
+          return sizeValue;
+        }
       }
     }
     
