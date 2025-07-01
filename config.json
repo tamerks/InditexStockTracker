@@ -51,6 +51,13 @@
       "sizes": [
         "S"
       ]
+    },
+    {
+      "store": "bershka",
+      "url": "https://www.bershka.com/tr/volanl%C4%B1-mini-elbise-c0p189277071.html?colorId=250",
+      "sizes": [
+        "S"
+      ]
     }
   ],
   "sleep_min_seconds": 60,
