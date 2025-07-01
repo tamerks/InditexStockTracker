@@ -1,6 +1,7 @@
 import json
 import time
 import random
+import subprocess
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -23,11 +24,41 @@ def load_config():
         return None
 
 def save_config(config):
-    """Config dosyasını kaydet"""
+    """Config dosyasını kaydet ve GitHub'a push et"""
     try:
+        # Dosyayı kaydet
         with open("config.json", "w") as config_file:
             json.dump(config, config_file, indent=2, ensure_ascii=False)
-        return True
+        
+        # GitHub Actions'ta Git konfigürasyonu ve push
+        if os.getenv('GITHUB_ACTIONS'):
+            try:
+                # Git config
+                subprocess.run(['git', 'config', '--global', 'user.name', 'Stock Checker Bot'], check=True, capture_output=True)
+                subprocess.run(['git', 'config', '--global', 'user.email', 'actions@github.com'], check=True, capture_output=True)
+                
+                # Changes add, commit ve push
+                subprocess.run(['git', 'add', 'config.json'], check=True, capture_output=True)
+                
+                # Check if there are changes to commit
+                result = subprocess.run(['git', 'diff', '--staged', '--quiet'], capture_output=True)
+                if result.returncode != 0:  # There are changes
+                    commit_msg = f"🗑️ Auto-remove found item - {time.strftime('%H:%M:%S')}"
+                    subprocess.run(['git', 'commit', '-m', commit_msg], check=True, capture_output=True)
+                    subprocess.run(['git', 'push'], check=True, capture_output=True)
+                    print("✅ Config changes pushed to GitHub")
+                    return True
+                else:
+                    print("⚠️ No config changes to commit")
+                    return True
+                    
+            except subprocess.CalledProcessError as e:
+                print(f"⚠️ Git operation failed: {e}")
+                return True  # Config file still saved locally
+        else:
+            print("✅ Config saved locally")
+            return True
+            
     except Exception as e:
         print(f"❌ Config save failed: {e}")
         return False
@@ -170,7 +201,7 @@ def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, c
                      f"🏪 Mağaza: <b>{store.upper()}</b>\n" \
                      f"🔗 <a href='{url}'>Ürün Linki</a>\n" \
                      f"⏰ Zaman: {time.strftime('%H:%M:%S')}\n\n" \
-                     f"{'🗑️ Ürün listeden otomatik çıkarıldı' if removed else '⚠️ Manuel listeden çıkarmanız gerekiyor'}"
+                     f"{'🗑️ Ürün otomatik çıkarıldı ve GitHub\'a push edildi!' if removed else '⚠️ Otomatik çıkarma başarısız - manuel kontrol edin'}"
             
             print(f"🎉 STOCK FOUND: {size_in_stock} - {store.upper()}")
             print(f"🗑️ Auto-removed from list: {removed}")

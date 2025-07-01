@@ -21,6 +21,8 @@ jobs:
   super-fast-stock-check:
     runs-on: ubuntu-latest
     timeout-minutes: 4  # Maximum 4 dakika - hızlı execution
+    permissions:
+      contents: write  # Git commit + push permissions
     
     steps:
     - name: ⚡ Checkout (sparse)
