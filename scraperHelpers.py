@@ -169,3 +169,148 @@ def watsonsChecker(driver):
         return not ("0 ürün") in text
     except:
         return False
+
+def check_stock_stradivarius(driver, sizes_to_check):
+    try:
+        wait = WebDriverWait(driver, 60)
+        
+        # Close the cookie alert if it appears
+        try:
+            print("Checking for cookie alert...")
+            accept_cookies_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
+            accept_cookies_button.click()
+            print("Cookie alert closed successfully.")
+        except TimeoutException:
+            print("Cookie alert not found or already closed.")
+
+        # Try to find and click size selector button or add to cart
+        try:
+            # Look for add to cart or size selector button
+            add_to_cart_selectors = [
+                "button[data-qa-action='add-to-cart']",
+                ".product-detail-actions__add-to-cart",
+                ".add-to-cart-button",
+                ".product-actions__add-to-cart",
+                "button[class*='add-to-cart']"
+            ]
+            
+            add_to_cart_button = None
+            for selector in add_to_cart_selectors:
+                try:
+                    add_to_cart_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+                    break
+                except TimeoutException:
+                    continue
+            
+            if add_to_cart_button:
+                # Click "Add to Cart" using JavaScript to bypass any hidden overlays
+                driver.execute_script("arguments[0].click();", add_to_cart_button)
+                print("Clicked 'Add to Cart' button.")
+            else:
+                print("Add to cart button not found")
+                return None
+        except Exception as e:
+            print(f"Failed to click 'Add to Cart' button: {e}")
+            return None
+
+        # Wait for the size selector to appear
+        print("Waiting for sizes to appear...")
+        time.sleep(2)  # Give some time for size selector to load
+        
+        # Try different size selector patterns for Stradivarius
+        size_selectors = [
+            ".size-selector-sizes-size",  # Zara-like
+            ".product-size-selector__item",  # Common pattern
+            ".size-list__item",
+            "[data-qa*='size']",
+            ".sizes__item"
+        ]
+        
+        size_elements = []
+        for selector in size_selectors:
+            try:
+                size_elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                if size_elements:
+                    print(f"Found size elements with selector: {selector}")
+                    break
+            except Exception:
+                continue
+        
+        if not size_elements:
+            print("No size elements found")
+            return None
+
+        sizes_found = {size: False for size in sizes_to_check}
+
+        for element in size_elements:
+            try:
+                # Try different ways to get size text
+                size_label = None
+                size_text_selectors = [
+                    "div[data-qa-qualifier='size-selector-sizes-size-label']",
+                    ".size-label",
+                    ".text__label", 
+                    "span"
+                ]
+                
+                for text_selector in size_text_selectors:
+                    try:
+                        size_label_elem = element.find_element(By.CSS_SELECTOR, text_selector)
+                        size_label = size_label_elem.text.strip()
+                        if size_label:
+                            break
+                    except:
+                        continue
+                
+                # If no specific selector worked, try getting text directly
+                if not size_label:
+                    size_label = element.text.strip()
+                
+                if size_label in sizes_to_check:
+                    sizes_found[size_label] = True
+                    
+                    # Try to find button within the element
+                    button = None
+                    button_selectors = [
+                        ".size-selector-sizes-size__button",
+                        "button",
+                        "[role='button']"
+                    ]
+                    
+                    for btn_selector in button_selectors:
+                        try:
+                            button = element.find_element(By.CSS_SELECTOR, btn_selector)
+                            break
+                        except:
+                            continue
+                    
+                    if not button:
+                        button = element  # Use the element itself if no button found
+                    
+                    # Check if size is available
+                    element_classes = element.get_attribute("class") or ""
+                    button_classes = button.get_attribute("class") or ""
+                    
+                    # Check for disabled/out of stock indicators
+                    if any(indicator in element_classes.lower() or indicator in button_classes.lower() 
+                           for indicator in ["disabled", "unavailable", "out-of-stock", "sold-out"]):
+                        print(f"The {size_label} size is out of stock.")
+                        continue
+                    
+                    # Check for available/in-stock indicators
+                    data_qa = button.get_attribute("data-qa-action") or ""
+                    if "stock" in data_qa or not any(indicator in data_qa for indicator in ["disabled", "unavailable"]):
+                        print(f"The {size_label} size is in stock.")
+                        return size_label
+                        
+            except Exception as e:
+                print(f"Error processing size element: {e}")
+                continue
+
+        if not any(sizes_found.values()):
+            print(f"Sizes {', '.join(sizes_to_check)} not found.")
+            
+    except Exception as e:
+        print(f"An error occurred during Stradivarius stock check: {e}")
+
+    return None
