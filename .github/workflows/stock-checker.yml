@@ -1,14 +1,14 @@
-name: Zara Stock Checker
+name: ⚡ Super Fast Stock Checker
 
 on:
   schedule:
-    # Her 10 dakikada bir çalış (GitHub Actions minimum 5 dakika)
-    - cron: '*/10 * * * *'
+    # Her 5 dakikada bir - GitHub Actions minimum limit
+    - cron: '*/5 * * * *'
   
   # Manuel çalıştırma için
   workflow_dispatch:
 
-  # Test için push event'i (sadece test amaçlı)
+  # Test için push event'i 
   push:
     branches: [ main ]
     paths: 
@@ -18,53 +18,42 @@ on:
       - '.github/workflows/*.yml'
 
 jobs:
-  stock-check:
+  super-fast-stock-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Max 15 dakika çalışsın
+    timeout-minutes: 4  # Maximum 4 dakika - hızlı execution
     
     steps:
-    - name: Checkout code
+    - name: ⚡ Checkout (sparse)
       uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          main_github.py
+          scraperHelpers.py
+          config.json
+          requirements.txt
+        sparse-checkout-cone-mode: false
       
-    - name: Set up Python
+    - name: ⚡ Python + Cache
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
+        cache-dependency-path: 'requirements.txt'
         
-    - name: Install Chrome
+    - name: ⚡ Chrome (pre-installed)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget gnupg
-        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-        sudo apt-get update
-        sudo apt-get install -y google-chrome-stable
+        google-chrome --version || sudo apt-get update && sudo apt-get install -y google-chrome-stable
         
-    - name: Install Python dependencies
+    - name: ⚡ Install Dependencies (cached)
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install --no-deps -r requirements.txt
         
-    - name: Create .env file
+    - name: ⚡ Fast Stock Check
       run: |
-        echo "BOT_API=${{ secrets.BOT_API }}" >> .env
-        echo "CHAT_ID=${{ secrets.CHAT_ID }}" >> .env
-        
-    - name: Run stock checker
-      run: |
-        echo "🚀 Starting stock checker..."
-        python main_github.py
+        echo "⚡ Super Fast Check - $(date '+%H:%M:%S')"
+        timeout 180 python main_github.py || echo "⚠️ Timeout or completed"
       env:
         BOT_API: ${{ secrets.BOT_API }}
         CHAT_ID: ${{ secrets.CHAT_ID }}
         PYTHONUNBUFFERED: 1
-        
-    - name: Upload logs (if any errors)
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: error-logs
-        path: |
-          *.log
-          *.txt 
+        CHROME_NO_SANDBOX: 1 

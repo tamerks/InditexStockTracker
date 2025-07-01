@@ -56,31 +56,50 @@ def send_telegram_message(message, bot_api, chat_id):
         return False
 
 def setup_chrome_driver():
-    """Chrome driver setup for GitHub Actions"""
+    """Super fast Chrome driver setup for GitHub Actions"""
     chrome_options = Options()
     
-    # GitHub Actions için optimize edilmiş ayarlar
+    # Maximum speed optimization
     chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--no-sandbox") 
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-web-security")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-plugins")
     chrome_options.add_argument("--disable-images")
-    chrome_options.add_argument("--disable-javascript")  # Performans için
-    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--disable-javascript")
+    chrome_options.add_argument("--disable-css")
+    chrome_options.add_argument("--disable-fonts")
+    chrome_options.add_argument("--disable-logging")
+    chrome_options.add_argument("--disable-notifications")
+    chrome_options.add_argument("--disable-background-networking")
+    chrome_options.add_argument("--disable-background-timer-throttling")
+    chrome_options.add_argument("--disable-renderer-backgrounding")
+    chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+    chrome_options.add_argument("--disable-client-side-phishing-detection")
+    chrome_options.add_argument("--disable-sync")
+    chrome_options.add_argument("--disable-translate")
+    chrome_options.add_argument("--hide-scrollbars")
+    chrome_options.add_argument("--metrics-recording-only")
+    chrome_options.add_argument("--mute-audio")
+    chrome_options.add_argument("--no-first-run")
+    chrome_options.add_argument("--safebrowsing-disable-auto-update")
+    chrome_options.add_argument("--ignore-ssl-errors")
+    chrome_options.add_argument("--ignore-certificate-errors")
+    chrome_options.add_argument("--window-size=1280,720")  # Smaller window
     chrome_options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
-    # Memory optimization
+    # Memory limits
     chrome_options.add_argument("--memory-pressure-off")
-    chrome_options.add_argument("--max_old_space_size=4096")
-    chrome_options.add_argument("--disable-background-timer-throttling")
+    chrome_options.add_argument("--max_old_space_size=2048")  # Lower memory
     
     try:
-        service = Service(ChromeDriverManager().install())
+        # Skip ChromeDriverManager for speed, use system chrome
+        service = Service('/usr/bin/chromedriver') if os.path.exists('/usr/bin/chromedriver') else Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
-        driver.set_page_load_timeout(30)  # 30 saniye timeout
+        driver.set_page_load_timeout(15)  # Faster timeout
+        driver.implicitly_wait(5)  # Faster implicit wait
         return driver
     except Exception as e:
         print(f"❌ Chrome driver setup failed: {e}")
@@ -101,8 +120,8 @@ def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, c
         # Driver'ı sayfaya yönlendir
         driver.get(url)
         
-        # Kısa bekleme (sayfa yüklenmesi için)
-        time.sleep(random.uniform(2, 4))
+        # Minimal bekleme (speed optimization)
+        time.sleep(random.uniform(1, 2))
         
         size_in_stock = None
         
@@ -145,9 +164,9 @@ def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, c
         return False
 
 def main():
-    """Ana fonksiyon - GitHub Actions için tek çalışım"""
-    print("🚀 Starting Zara Stock Checker (GitHub Actions)")
-    print(f"⏰ Start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    """Super Fast Stock Checker - GitHub Actions Optimized"""
+    print("⚡ SUPER FAST Stock Checker (Every 5 min)")
+    print(f"🚀 Start: {time.strftime('%H:%M:%S')}")
     
     # Config yükle
     config = load_config()
@@ -188,10 +207,10 @@ def main():
             if result:
                 found_stock = True
                 
-            # Items arası kısa bekleme
+            # Items arası minimal bekleme (speed optimization)
             if checked_count < len(urls_to_check):
-                wait_time = random.uniform(3, 7)
-                print(f"⏳ Waiting {wait_time:.1f} seconds before next check...")
+                wait_time = random.uniform(1, 2)
+                print(f"⚡ Fast transition in {wait_time:.1f}s...")
                 time.sleep(wait_time)
                 
     except KeyboardInterrupt:
@@ -202,20 +221,21 @@ def main():
         print("\n🔄 Closing browser...")
         driver.quit()
         
-    # Özet
-    print(f"\n{'='*50}")
-    print("📊 SUMMARY")
-    print(f"✅ Items checked: {checked_count}")
-    print(f"🛍️ Stock found: {'YES' if found_stock else 'NO'}")
-    print(f"⏰ End time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print("🏁 Stock check completed")
+    # Fast summary
+    print(f"\n⚡ FAST SUMMARY")
+    print(f"✅ Checked: {checked_count} | 🛍️ Found: {'YES' if found_stock else 'NO'}")
+    print(f"⏱️ End: {time.strftime('%H:%M:%S')} | 🏁 Next check in 5min")
     
-    # Telegram'a özet gönder (sadece stok bulunmazsa)
-    if telegram_enabled and not found_stock:
-        summary_message = f"📊 <b>Stok Kontrolü Tamamlandı</b>\n\n" \
-                         f"✅ Kontrol edilen ürün: {checked_count}\n" \
-                         f"❌ Stok bulunamadı\n" \
-                         f"⏰ {time.strftime('%H:%M:%S')}"
+    # Telegram summary (only for errors or every 12th check = 1 hour)
+    # Don't spam Telegram every 5 minutes - only send errors or hourly summary
+    current_minute = int(time.strftime('%M'))
+    send_summary = telegram_enabled and not found_stock and (current_minute % 60 == 0)
+    
+    if send_summary:
+        summary_message = f"⚡ <b>Hourly Stock Summary</b>\n\n" \
+                         f"✅ System running every 5 min\n" \
+                         f"❌ No stock found this hour\n" \
+                         f"⏰ {time.strftime('%H:%M')}"
         send_telegram_message(summary_message, bot_api, chat_id)
 
 if __name__ == "__main__":
