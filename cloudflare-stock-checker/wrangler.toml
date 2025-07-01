@@ -1,7 +1,6 @@
-name = "stock-checker"
+name = "zara-stock-checker"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
 
 # Cron job - her 10 dakikada bir çalışır
 [triggers]
@@ -15,3 +14,7 @@ crons = ["*/10 * * * *"]  # Her 10 dakika
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
 enabled = true
+
+# Secrets için wrangler secret put komutunu kullan:
+# wrangler secret put BOT_API
+# wrangler secret put CHAT_ID

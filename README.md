@@ -5,7 +5,7 @@ Zara, Bershka ve Stradivarius için 7/24 çalışan **ücretsiz** stok takip sis
 ## ✨ Özellikler
 
 - 🆓 **Tamamen ücretsiz** (Cloudflare Workers Free Plan)
-- ⏰ **7/24 otomatik çalışma** (her 30 dakikada kontrol)
+- ⏰ **7/24 otomatik çalışma** (her 10 dakikada kontrol)
 - 📱 **Telegram bildirimleri**
 - 🛍️ **3 mağaza desteği**: Zara, Bershka, Stradivarius
 - 📏 **Çoklu beden takibi**: 36, 38, S, M
@@ -69,7 +69,7 @@ wrangler deploy
 ## 🎯 Kullanım
 
 ### Otomatik Çalışma
-- Worker her 30 dakikada otomatik çalışır
+- Worker her 10 dakikada otomatik çalışır
 - Stok bulunca Telegram mesajı gönderir
 
 ### Manuel Test
