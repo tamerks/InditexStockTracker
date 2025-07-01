@@ -196,12 +196,14 @@ def check_single_item(driver, item, sizes_to_check, telegram_enabled, bot_api, c
             # Ürünü config'den çıkar (sürekli bildirim gelmesin)
             removed = remove_item_from_config(config, item)
             
+            auto_remove_msg = "🗑️ Ürün takip listesinden çıkarıldı" if removed else "⚠️ Manuel listeden çıkarmanız gerekiyor"
+            
             message = f"🛍️ <b>STOK BULUNDU!</b>\n\n" \
                      f"📏 Beden: <b>{size_in_stock}</b>\n" \
                      f"🏪 Mağaza: <b>{store.upper()}</b>\n" \
                      f"🔗 <a href='{url}'>Ürün Linki</a>\n" \
                      f"⏰ Zaman: {time.strftime('%H:%M:%S')}\n\n" \
-                     f"{'🗑️ Ürün otomatik çıkarıldı ve GitHub\'a push edildi!' if removed else '⚠️ Otomatik çıkarma başarısız - manuel kontrol edin'}"
+                     f"{auto_remove_msg}"
             
             print(f"🎉 STOCK FOUND: {size_in_stock} - {store.upper()}")
             print(f"🗑️ Auto-removed from list: {removed}")
