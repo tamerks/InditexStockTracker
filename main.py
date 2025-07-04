@@ -82,14 +82,15 @@ while True:
                     url = item.get("url")
                     store = item.get("store")
                     sizes_to_check = item.get("sizes", [])
+                    person = item.get("person", "Bilinmeyen")
                     driver.get(url)
                     print("--------------------------------")
-                    print(f"Url {url} için: ")
+                    print(f"Url {url} için ({person}): ")
                     if store == "zara":
                         # Check stock for the specified sizes
                         size_in_stock = check_stock_zara(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\nLink: {url}"
+                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
@@ -98,7 +99,7 @@ while True:
                     elif store == "bershka":
                         size_in_stock = check_stock_bershka(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\nLink: {url}"
+                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
@@ -107,7 +108,7 @@ while True:
                     elif store == "stradivarius":
                         size_in_stock = check_stock_stradivarius(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\nLink: {url}"
+                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
