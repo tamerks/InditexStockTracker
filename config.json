@@ -2,6 +2,15 @@
   "urls": [
     {
       "store": "zara",
+      "url": "https://www.zara.com/tr/tr/basic-kapusonlu-sweatshirt-p00761330.html?v1=410594461&v2=2537962",
+      "sizes": [
+        "S",
+        "M"
+      ],
+      "person": "Tamer"
+    },
+    {
+      "store": "zara",
       "url": "https://www.zara.com/tr/tr/asimetrik-cift-t-shirt-p05644213.html?v1=441578999",
       "sizes": [
         "S",
