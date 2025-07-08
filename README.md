@@ -1,4 +1,4 @@
-# 🛍️ Zara Stock Checker
+# 🛍️ Inditex Stock Checker
 
 Zara, Bershka ve Stradivarius mağazalarında otomatik stok takibi yapan Python projesi. GitHub Actions kullanarak cloud'da ücretsiz çalışır.
 
