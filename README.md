@@ -1,12 +1,219 @@
 # 🛍️ Inditex Stock Checker
 
-Zara, Bershka ve Stradivarius mağazalarında otomatik stok takibi yapan Python projesi. GitHub Actions kullanarak cloud'da ücretsiz çalışır.
+Automated stock tracking Python project for Inditex stores (Zara, Bershka, Stradivarius). Runs for free in the cloud using GitHub Actions.
+
+## ✨ Features
+
+- ⚡ **Super Fast:** Stock check every 5 minutes (GitHub Actions minimum)
+- 🚀 **Optimized Performance:** ~2 minute execution, maximum speed
+- 🌐 **Multi-Store:** Zara, Bershka, Stradivarius support
+- 👥 **Person Tracking:** Specify person name for each product and show in notifications
+- 📱 **Smart Notifications:** Instant alerts when stock found, no spam
+- 🗑️ **Auto Cleanup:** Found products automatically removed from list
+- 🔒 **Bot Detection Bypass:** Real browser usage with Selenium
+- ☁️ **Cloud Operation:** Free hosting with GitHub Actions
+- 🆓 **Completely Free:** Unlimited minutes on public repo
+
+## 🚀 Setup
+
+### 1. Fork the Repository
+Fork this repository to your own GitHub account.
+
+### 2. Create Telegram Bot
+1. Send `/newbot` to [@BotFather](https://t.me/botfather)
+2. Save your bot token (e.g., `1234567890:ABC...`)
+3. Get your Chat ID by messaging [@userinfobot](https://t.me/userinfobot)
+
+### 3. Setup GitHub Secrets
+Repository Settings > Secrets and Variables > Actions:
+
+- **BOT_API:** Your Telegram bot token
+- **CHAT_ID:** Your Telegram chat ID
+
+### 4. Configure Product URLs
+Edit the `config.json` file:
+
+```json
+{
+  "urls": [
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/tr/product-link",
+      "sizes": ["S", "M", "L"],
+      "person": "John"
+    },
+    {
+      "store": "bershka", 
+      "url": "https://www.bershka.com/tr/tr/product-link",
+      "sizes": ["36", "38"],
+      "person": "Jane"
+    }
+  ],
+  "sleep_min_seconds": 60,
+  "sleep_max_seconds": 180
+}
+```
+
+## 📁 File Structure
+
+```
+├── .github/workflows/
+│   └── stock-checker.yml      # GitHub Actions workflow
+├── main_github.py            # Main stock checker (for GitHub Actions)
+├── main.py                   # For local usage
+├── scraperHelpers.py         # Scraping functions  
+├── config.json               # Configuration
+└── requirements.txt          # Python dependencies
+```
+
+## 🔧 Usage
+
+### Automatic Operation
+- GitHub Actions runs automatically every 5 minutes
+- Sends Telegram notification when stock is found
+- Found products are automatically removed from tracking list
+
+### Manual Test
+1. Repository > Actions > "Inditex Stock Checker"
+2. Click "Run workflow" button
+3. Follow the logs
+
+### Local Usage
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Single check
+python main_github.py
+
+# Continuous operation (infinite loop)
+python main.py
+```
+
+## ⚙️ Configuration
+
+### Supported Stores
+- **Zara:** `"store": "zara"`
+- **Bershka:** `"store": "bershka"`  
+- **Stradivarius:** `"store": "stradivarius"`
+
+### Configuration Details
+
+#### **URL Fields:**
+- **store:** Store name (`"zara"`, `"bershka"`, `"stradivarius"`)
+- **url:** Product link
+- **sizes:** Sizes to check for this product
+- **person:** Name of person tracking the product (shown in Telegram messages)
+
+#### **Size Formats:**
+- **Numeric:** `"36", "38", "40"`
+- **Letter:** `"XS", "S", "M", "L", "XL"`
+
+#### **Sleep Settings:**
+- **sleep_min_seconds:** Minimum wait time (seconds)
+- **sleep_max_seconds:** Maximum wait time (seconds)
+
+### 💬 Telegram Notification Example
+
+```
+🛍️ STOCK FOUND!
+
+👤 Person: John
+📏 Size: M
+🏪 Store: ZARA
+🔗 Product Link
+⏰ Time: 14:30:25
+
+🗑️ Product removed from tracking list
+```
+
+## 📊 GitHub Actions Details
+
+- **Frequency:** Every 5 minutes (`*/5 * * * *`) - GitHub minimum limit
+- **Execution Time:** ~2 minutes (super optimized)
+- **Timeout:** 8 minutes maximum (GitHub Actions workflow limit)
+- **Chrome:** Pre-installed, all features disabled for speed
+- **Python:** 3.9 with cached dependencies
+- **OS:** Ubuntu Latest
+- **Auto-Remove:** Found products automatically removed from config
+
+## 🐛 Troubleshooting
+
+### Check Actions Logs
+1. Repository > Actions
+2. Click on latest run
+3. Open "Run stock checker" step
+
+### Common Issues
+- **No Telegram messages:** Check BOT_API and CHAT_ID secrets
+- **Stock not found:** Ensure URLs are current
+- **Actions not running:** Ensure repository is public
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add some amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## ⚠️ Legal Notice and Disclaimer
+
+**IMPORTANT:** This project is for **educational and research purposes only**.
+
+### 🚨 **Usage Limitations:**
+- This tool should only be used for **personal, non-commercial** purposes
+- May violate target sites' **Terms of Service**
+- User acts at their own responsibility
+- **Legal liability** belongs to the user
+
+### ⚖️ **Recommended Usage:**
+- Use for **your own products** you plan to purchase
+- Run at **reasonable frequency** (few times per day)
+- **Do not use commercially**
+- Respect sites' **rate limiting**
+
+### 🛡️ **Legal Alternatives:**
+- Use official mobile apps
+- Subscribe to newsletters
+- Use official notification systems
+- Use open APIs if available
+
+**By using this tool, you acknowledge accepting all legal risks.**
+
+## ⚡ Performance Optimizations
+
+### **Speed Features:**
+- **Sparse Checkout:** Only necessary files downloaded
+- **Cached Dependencies:** Python packages loaded from cache
+- **Chrome Optimizations:** Images, CSS, JS disabled
+- **Smart Timeouts:** 15s page load, 5s implicit wait
+- **Fast Transitions:** 1-2s delays between checks
+
+### **Smart Notifications:**
+- **Instant Alerts:** Immediate Telegram when stock found
+- **No Spam:** Only hourly summary if no stock
+- **Auto Remove:** Found products automatically deleted from config
+
+---
+
+**⚡ Tip:** Super fast (5 minutes), completely free and smart stock tracking system!
+
+---
+
+# 🛍️ Inditex Stok Takipçisi
+
+Inditex mağazalarında (Zara, Bershka, Stradivarius) otomatik stok takibi yapan Python projesi. GitHub Actions kullanarak cloud'da ücretsiz çalışır.
 
 ## ✨ Özellikler
 
 - ⚡ **Süper Hızlı:** Her 5 dakikada bir stok kontrolü (GitHub Actions minimum)
 - 🚀 **Optimize Performans:** ~2 dakikada execution, maximum speed
-- 🌐 **Multi-Store:** Zara, Bershka, Stradivarius desteği  
+- 🌐 **Multi-Store:** Zara, Bershka, Stradivarius desteği
 - 👥 **Kişi Takibi:** Her ürün için kişi ismi belirtme ve bildirimde gösterme
 - 📱 **Akıllı Bildirimler:** Stok bulunduğunda anında haber, spam yok
 - 🗑️ **Otomatik Temizlik:** Bulunan ürünler listeden otomatik çıkar
@@ -74,7 +281,7 @@ Repository Settings > Secrets and Variables > Actions:
 - Bulunan ürünler otomatik olarak takip listesinden çıkarılır
 
 ### Manuel Test
-1. Repository > Actions > "Zara Stock Checker"
+1. Repository > Actions > "Inditex Stock Checker"
 2. "Run workflow" butonuna tıklayın
 3. Log'ları takip edin
 
