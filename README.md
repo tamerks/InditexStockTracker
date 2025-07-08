@@ -7,6 +7,7 @@ Zara, Bershka ve Stradivarius mağazalarında otomatik stok takibi yapan Python 
 - ⚡ **Süper Hızlı:** Her 5 dakikada bir stok kontrolü (GitHub Actions minimum)
 - 🚀 **Optimize Performans:** ~2 dakikada execution, maximum speed
 - 🌐 **Multi-Store:** Zara, Bershka, Stradivarius desteği  
+- 👥 **Kişi Takibi:** Her ürün için kişi ismi belirtme ve bildirimde gösterme
 - 📱 **Akıllı Bildirimler:** Stok bulunduğunda anında haber, spam yok
 - 🗑️ **Otomatik Temizlik:** Bulunan ürünler listeden otomatik çıkar
 - 🔒 **Bot Detection Bypass:** Selenium ile gerçek browser kullanımı
@@ -37,10 +38,19 @@ Repository Settings > Secrets and Variables > Actions:
   "urls": [
     {
       "store": "zara",
-      "url": "https://www.zara.com/tr/tr/urun-linki"
+      "url": "https://www.zara.com/tr/tr/urun-linki",
+      "sizes": ["S", "M", "L"],
+      "person": "Ahmet"
+    },
+    {
+      "store": "bershka", 
+      "url": "https://www.bershka.com/tr/tr/urun-linki",
+      "sizes": ["36", "38"],
+      "person": "Ayşe"
     }
   ],
-  "sizes_to_check": ["36", "38", "S", "M"]
+  "sleep_min_seconds": 60,
+  "sleep_max_seconds": 180
 }
 ```
 
@@ -59,8 +69,9 @@ Repository Settings > Secrets and Variables > Actions:
 ## 🔧 Kullanım
 
 ### Otomatik Çalışma
-- GitHub Actions her 10 dakikada otomatik çalışır
+- GitHub Actions her 5 dakikada otomatik çalışır
 - Stok bulunduğunda Telegram'a bildirim gönderir
+- Bulunan ürünler otomatik olarak takip listesinden çıkarılır
 
 ### Manuel Test
 1. Repository > Actions > "Zara Stock Checker"
@@ -86,18 +97,45 @@ python main.py
 - **Bershka:** `"store": "bershka"`  
 - **Stradivarius:** `"store": "stradivarius"`
 
-### Beden Formatları
+### Konfigürasyon Detayları
+
+#### **URL Alanları:**
+- **store:** Mağaza adı (`"zara"`, `"bershka"`, `"stradivarius"`)
+- **url:** Ürün linki
+- **sizes:** Bu ürün için kontrol edilecek bedenler
+- **person:** Ürünü takip eden kişinin ismi (Telegram mesajlarında görünür)
+
+#### **Beden Formatları:**
 - **Sayısal:** `"36", "38", "40"`
 - **Harf:** `"XS", "S", "M", "L", "XL"`
+
+#### **Sleep Ayarları:**
+- **sleep_min_seconds:** Minimum bekleme süresi (saniye)
+- **sleep_max_seconds:** Maksimum bekleme süresi (saniye)
+
+### 💬 Telegram Bildirim Örneği
+
+```
+🛍️ STOK BULUNDU!
+
+👤 Kişi: Ahmet
+📏 Beden: M
+🏪 Mağaza: ZARA
+🔗 Ürün Linki
+⏰ Zaman: 14:30:25
+
+🗑️ Ürün takip listesinden çıkarıldı
+```
 
 ## 📊 GitHub Actions Detayları
 
 - **Çalışma Sıklığı:** Her 5 dakika (`*/5 * * * *`) - GitHub minimum limit
 - **Execution Time:** ~2 dakika (süper optimize)
-- **Timeout:** 4 dakika maksimum (180s hard limit)
+- **Timeout:** 8 dakika maksimum (GitHub Actions workflow limit)
 - **Chrome:** Pre-installed, all features disabled for speed
 - **Python:** 3.9 with cached dependencies
 - **OS:** Ubuntu Latest
+- **Auto-Remove:** Bulunan ürünler otomatik olarak config'den çıkarılır
 
 ## 🐛 Sorun Giderme
 
