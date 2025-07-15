@@ -2,6 +2,22 @@
   "urls": [
     {
       "store": "zara",
+      "url": "https://www.zara.com/tr/en/short-double-breasted-jacket-p03046066.html?v1=428564391&utm_campaign=productShare&utm_medium=mobile_sharing_iOS&utm_source=red_social_movil",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/contrast-puffer-jacket-p08073227.html?v1=431955923&utm_campaign=productShare&utm_medium=mobile_sharing_iOS&utm_source=red_social_movil",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
       "url": "https://www.zara.com/tr/tr/asimetrik-cift-t-shirt-p05644213.html?v1=441578999",
       "sizes": [
         "S",
