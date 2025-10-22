@@ -2,6 +2,14 @@
   "urls": [
     {
       "store": "zara",
+      "url": "https://www.zara.com/tr/tr/asimetrik-cift-t-shirt-p05644213.html?v1=441578999",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
       "url": "https://www.zara.com/tr/en/contrast-puffer-jacket-p08073227.html?v1=431955923&utm_campaign=productShare&utm_medium=mobile_sharing_iOS&utm_source=red_social_movil",
       "sizes": [
         "S"
@@ -35,6 +43,22 @@
     {
       "store": "zara",
       "url": "https://www.zara.com/share/halter-yaka-cicekli-poplin-top-p03152086.html?v1=450245434&utm_campaign=productShare&utm_medium=mobile_sharing_iOS&utm_source=red_social_movil",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/tr/kombine-dantel-ceket-ve-ust-p05644929.html?v1=477892343",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/tr/cift-katli-triko-hirka-kazak-p04938126.html?v1=493502165",
       "sizes": [
         "S"
       ],
