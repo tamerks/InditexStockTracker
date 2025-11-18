@@ -10,6 +10,7 @@ import time
 import random
 import os
 import sys
+import re
 
 # Function to check stock availability (For ZARA)
 def check_stock_zara(driver, sizes_to_check):
@@ -325,3 +326,465 @@ def check_stock_stradivarius(driver, sizes_to_check):
         print(f"An error occurred during Stradivarius stock check: {e}")
 
     return None
+
+def scrape_sahibinden_list(driver):
+    """
+    Sahibinden.com sayfasındaki ilan listesini çeker ve döndürür.
+    Returns: List of dictionaries containing listing information
+    """
+    try:
+        is_github_actions = os.getenv('GITHUB_ACTIONS')
+        timeout = 15 if is_github_actions else 30
+        wait = WebDriverWait(driver, timeout)
+        
+        print("Waiting for sahibinden.com page to load...")
+        
+        # Cookie popup'ı kapatmaya çalış
+        try:
+            cookie_wait = WebDriverWait(driver, 5)
+            # Sahibinden.com cookie butonları için farklı selector'lar dene
+            cookie_selectors = [
+                "button[id*='cookie']",
+                "button[class*='cookie']",
+                ".cookie-accept",
+                "#onetrust-accept-btn-handler"
+            ]
+            for selector in cookie_selectors:
+                try:
+                    cookie_button = cookie_wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+                    driver.execute_script("arguments[0].click();", cookie_button)
+                    print("Cookie popup closed.")
+                    time.sleep(1)
+                    break
+                except:
+                    continue
+        except:
+            print("No cookie popup found or already closed.")
+        
+        # Sayfanın yüklenmesini bekle
+        time.sleep(2)
+        
+        # İlan listesi için farklı selector'ları dene
+        listing_selectors = [
+            "tr[class*='searchResultsItem']",
+            ".searchResultsItem",
+            "tr[data-id]",
+            ".classified-list-item",
+            "div[class*='classified']"
+        ]
+        
+        listings = []
+        listing_elements = []
+        
+        for selector in listing_selectors:
+            try:
+                listing_elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                if listing_elements:
+                    print(f"Found {len(listing_elements)} listings with selector: {selector}")
+                    break
+            except Exception as e:
+                print(f"Selector {selector} failed: {e}")
+                continue
+        
+        if not listing_elements:
+            print("⚠️ No listing elements found. Trying alternative approach...")
+            # Alternatif: sayfadaki tüm linkleri kontrol et
+            try:
+                all_links = driver.find_elements(By.CSS_SELECTOR, "a[href*='/ilan/']")
+                print(f"Found {len(all_links)} potential listing links")
+                if all_links:
+                    # İlk birkaç linki kontrol et
+                    for link in all_links[:10]:
+                        try:
+                            href = link.get_attribute("href")
+                            text = link.text.strip()
+                            if href and text:
+                                listings.append({
+                                    "title": text,
+                                    "url": href,
+                                    "price": "N/A",
+                                    "location": "N/A"
+                                })
+                        except:
+                            continue
+            except Exception as e:
+                print(f"Alternative approach failed: {e}")
+        
+        # Her ilan için bilgileri çek
+        for element in listing_elements[:50]:  # İlk 50 ilanı al
+            try:
+                listing_data = {}
+                
+                # Başlık ve link - önce tüm linkleri bul, sonra doğru olanı seç
+                all_links = element.find_elements(By.CSS_SELECTOR, "a")
+                listing_url = None
+                listing_title = None
+                
+                # /ilan/ içeren ve geçerli URL'yi bul
+                for link in all_links:
+                    href = link.get_attribute("href") or ""
+                    # Geçerli bir ilan URL'si olmalı
+                    if "/ilan/" in href and href != "#" and "sahibinden.com/ilan/" in href:
+                        listing_url = href
+                        # Başlık metnini al
+                        link_text = link.text.strip()
+                        if link_text:
+                            listing_title = link_text
+                        else:
+                            # Title attribute'unu dene
+                            link_title = link.get_attribute("title") or ""
+                            if link_title:
+                                listing_title = link_title
+                        break
+                
+                # Eğer hala URL bulunamadıysa, data-href veya onclick'i kontrol et
+                if not listing_url:
+                    for link in all_links:
+                        data_href = link.get_attribute("data-href") or ""
+                        if "/ilan/" in data_href:
+                            listing_url = data_href if data_href.startswith("http") else f"https://www.sahibinden.com{data_href}"
+                            link_text = link.text.strip()
+                            listing_title = link_text if link_text else link.get_attribute("title") or ""
+                            break
+                
+                # URL'yi kaydet
+                listing_data["url"] = listing_url or "N/A"
+                
+                # Başlığı belirle
+                if listing_title:
+                    listing_data["title"] = listing_title
+                elif listing_url and "/ilan/" in listing_url:
+                    # URL'den başlık çıkar
+                    url_parts = listing_url.split("/")
+                    if len(url_parts) >= 4:
+                        # URL formatı: .../ilan/vasita-otomobil-audi-2024-a4-40tdi.../detay
+                        url_title_part = url_parts[3]
+                        # İlk birkaç kelimeyi al ve daha okunabilir yap
+                        title_words = url_title_part.replace("-", " ").split()[:8]  # İlk 8 kelime
+                        listing_data["title"] = " ".join(title_words).title()
+                    else:
+                        listing_data["title"] = "Başlık bulunamadı"
+                else:
+                    # Son çare: element'in text içeriğini al
+                    element_text = element.text.strip()
+                    listing_data["title"] = element_text[:100] if element_text else "Başlık bulunamadı"
+                
+                # Fiyat
+                try:
+                    price_elem = element.find_element(By.CSS_SELECTOR, "td[class*='searchResultsPrice']")
+                    listing_data["price"] = price_elem.text.strip()
+                except:
+                    try:
+                        price_elem = element.find_element(By.CSS_SELECTOR, ".price")
+                        listing_data["price"] = price_elem.text.strip()
+                    except:
+                        listing_data["price"] = "N/A"
+                
+                # Lokasyon
+                try:
+                    location_elem = element.find_element(By.CSS_SELECTOR, "td[class*='searchResultsLocation']")
+                    listing_data["location"] = location_elem.text.strip()
+                except:
+                    try:
+                        location_elem = element.find_element(By.CSS_SELECTOR, ".location")
+                        listing_data["location"] = location_elem.text.strip()
+                    except:
+                        listing_data["location"] = "N/A"
+                
+                # Sadece geçerli URL'ye sahip ilanları ekle
+                if listing_data.get("url") and listing_data["url"] != "N/A":
+                    listings.append(listing_data)
+                    
+            except Exception as e:
+                print(f"Error processing listing element: {e}")
+                continue
+        
+        print(f"✅ Successfully scraped {len(listings)} listings from sahibinden.com")
+        return listings
+        
+    except TimeoutException:
+        print("⏱️ Timeout while loading sahibinden.com page")
+        return []
+    except Exception as e:
+        print(f"❌ Error scraping sahibinden.com: {e}")
+        return []
+
+def scrape_sahibinden_detail(driver, detail_url):
+    """
+    Sahibinden.com detay sayfasından ek bilgileri çeker.
+    Returns: Dictionary containing detailed listing information
+    """
+    detail_info = {}
+    
+    try:
+        # Detay sayfasına git
+        driver.get(detail_url)
+        time.sleep(2)  # Sayfanın yüklenmesini bekle
+        
+        # Cookie popup'ı kapat
+        try:
+            cookie_wait = WebDriverWait(driver, 3)
+            cookie_selectors = [
+                "button[id*='cookie']",
+                "button[class*='cookie']",
+                ".cookie-accept",
+                "#onetrust-accept-btn-handler"
+            ]
+            for selector in cookie_selectors:
+                try:
+                    cookie_button = cookie_wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+                    driver.execute_script("arguments[0].click();", cookie_button)
+                    time.sleep(0.5)
+                    break
+                except:
+                    continue
+        except:
+            pass
+        
+        # İlan detay bilgileri için farklı selector'ları dene
+        detail_selectors = {
+            "model_year": [
+                "li:contains('Model Yılı')",
+                "dt:contains('Model Yılı')",
+                "[class*='modelYear']",
+                "[data-label*='Model Yılı']"
+            ],
+            "kilometer": [
+                "li:contains('Kilometre')",
+                "dt:contains('Kilometre')",
+                "[class*='kilometer']",
+                "[data-label*='Kilometre']"
+            ],
+            "transmission": [
+                "li:contains('Vites')",
+                "dt:contains('Vites')",
+                "[class*='transmission']",
+                "[data-label*='Vites']"
+            ],
+            "fuel_type": [
+                "li:contains('Yakıt')",
+                "dt:contains('Yakıt')",
+                "[class*='fuel']",
+                "[data-label*='Yakıt']"
+            ],
+            "engine_power": [
+                "li:contains('Motor Gücü')",
+                "dt:contains('Motor Gücü')",
+                "[class*='enginePower']",
+                "[data-label*='Motor Gücü']"
+            ],
+            "color": [
+                "li:contains('Renk')",
+                "dt:contains('Renk')",
+                "[class*='color']",
+                "[data-label*='Renk']"
+            ],
+            "description": [
+                "[class*='description']",
+                "[class*='classifiedDescription']",
+                ".classified-detail-text",
+                "#classifiedDescription"
+            ],
+            "phone": [
+                "[class*='phone']",
+                "[data-phone]",
+                ".classified-contact-phone"
+            ],
+            "city": [
+                "[class*='city']",
+                "[class*='location']",
+                ".classified-location"
+            ]
+        }
+        
+        # Genel bilgi tablosunu bul - Sahibinden.com'un özellikler listesi
+        try:
+            # Özellikler listesi için farklı yapıları dene
+            property_selectors = [
+                "ul.classifiedInfoList li",
+                ".classifiedInfoList li",
+                "dl.classifiedInfoList dt",
+                ".classified-detail-info li",
+                "[class*='classified-info'] li"
+            ]
+            
+            properties_found = False
+            for selector in property_selectors:
+                try:
+                    property_items = driver.find_elements(By.CSS_SELECTOR, selector)
+                    if property_items:
+                        properties_found = True
+                        for item in property_items:
+                            item_text = item.text.strip()
+                            if not item_text:
+                                continue
+                            
+                            # Label ve value'yu ayır
+                            if ":" in item_text:
+                                parts = item_text.split(":", 1)
+                                label = parts[0].strip()
+                                value = parts[1].strip()
+                            else:
+                                # dt/dd yapısı varsa
+                                try:
+                                    dt = item.find_element(By.CSS_SELECTOR, "dt, .label, strong")
+                                    dd = item.find_element(By.CSS_SELECTOR, "dd, .value, span")
+                                    label = dt.text.strip()
+                                    value = dd.text.strip()
+                                except:
+                                    continue
+                            
+                            # Model Yılı
+                            if "Model Yılı" in label or "Model" in label:
+                                if value:
+                                    detail_info["model_year"] = value
+                            
+                            # Kilometre
+                            if "Kilometre" in label or "Km" in label:
+                                if value and "Kilometre" not in value:
+                                    detail_info["kilometer"] = value
+                            
+                            # Vites
+                            if "Vites" in label:
+                                if value:
+                                    detail_info["transmission"] = value
+                            
+                            # Yakıt
+                            if "Yakıt" in label:
+                                if value:
+                                    detail_info["fuel_type"] = value
+                            
+                            # Motor Gücü / Motor Hacmi
+                            if "Motor Gücü" in label or "Motor Hacmi" in label or ("Motor" in label and "Gücü" in label):
+                                if value and "Motor" not in value:
+                                    detail_info["engine_power"] = value
+                            
+                            # Renk
+                            if "Renk" in label:
+                                if value:
+                                    detail_info["color"] = value
+                            
+                            # Kasa Tipi
+                            if "Kasa" in label:
+                                if value:
+                                    detail_info["body_type"] = value
+                            
+                            # Çekiş
+                            if "Çekiş" in label:
+                                if value:
+                                    detail_info["drive_type"] = value
+                        
+                        if properties_found:
+                            break
+                except:
+                    continue
+            
+            # Eğer özellikler listesi bulunamadıysa, genel text araması yap
+            if not properties_found:
+                page_text = driver.find_element(By.TAG_NAME, "body").text
+                # Basit regex ile bilgileri çıkar
+                import re
+                
+                # Model yılı (örn: 2020, 2021, etc.)
+                year_match = re.search(r'(19|20)\d{2}', page_text[:2000])
+                if year_match:
+                    detail_info["model_year"] = year_match.group(0)
+                
+                # Kilometre (örn: 50.000 km, 100000 km)
+                km_match = re.search(r'(\d{1,3}(?:\.\d{3})*)\s*(?:km|Km|KM|kilometre)', page_text[:2000], re.IGNORECASE)
+                if km_match:
+                    detail_info["kilometer"] = km_match.group(1) + " km"
+        except Exception as e:
+            print(f"  ⚠️ Error extracting info table: {e}")
+        
+        # Açıklama metnini bul
+        try:
+            desc_selectors = [
+                "[class*='classifiedDescription']",
+                "[class*='description']",
+                ".classified-detail-text",
+                "#classifiedDescription",
+                "[id*='description']"
+            ]
+            for selector in desc_selectors:
+                try:
+                    desc_elem = driver.find_element(By.CSS_SELECTOR, selector)
+                    description = desc_elem.text.strip()
+                    if description and len(description) > 20:
+                        detail_info["description"] = description[:500]  # İlk 500 karakter
+                        break
+                except:
+                    continue
+        except Exception as e:
+            print(f"  ⚠️ Error extracting description: {e}")
+        
+        # Fotoğraf sayısını bul
+        try:
+            photo_selectors = [
+                "[class*='photo']",
+                "[class*='image']",
+                ".classified-photos",
+                "[data-photo-count]"
+            ]
+            for selector in photo_selectors:
+                try:
+                    photos = driver.find_elements(By.CSS_SELECTOR, f"{selector} img, {selector} [class*='photo']")
+                    if photos:
+                        detail_info["photo_count"] = len(photos)
+                        break
+                except:
+                    continue
+        except Exception as e:
+            pass
+        
+        # İlan tarihini bul
+        try:
+            date_selectors = [
+                "[class*='date']",
+                "[class*='time']",
+                ".classified-date"
+            ]
+            for selector in date_selectors:
+                try:
+                    date_elem = driver.find_element(By.CSS_SELECTOR, selector)
+                    date_text = date_elem.text.strip()
+                    if date_text:
+                        detail_info["listing_date"] = date_text
+                        break
+                except:
+                    continue
+        except Exception as e:
+            pass
+        
+    except Exception as e:
+        print(f"  ⚠️ Error scraping detail page {detail_url}: {e}")
+    
+    return detail_info
+
+def scrape_sahibinden_list_with_details(driver, max_details=10):
+    """
+    Sahibinden.com sayfasındaki ilan listesini çeker ve detay sayfalarına gidip ek bilgileri ekler.
+    max_details: Kaç ilanın detay sayfasına gidileceği (performans için sınırlı)
+    Returns: List of dictionaries containing listing information with details
+    """
+    # Önce liste sayfasından temel bilgileri çek
+    listings = scrape_sahibinden_list(driver)
+    
+    if not listings:
+        return listings
+    
+    print(f"\n🔍 Fetching details for {min(max_details, len(listings))} listings...")
+    
+    # Her ilan için detay sayfasına git (sınırlı sayıda)
+    for i, listing in enumerate(listings[:max_details]):
+        if listing.get("url") and listing["url"] != "N/A":
+            print(f"  📄 [{i+1}/{min(max_details, len(listings))}] Fetching details: {listing.get('title', 'N/A')[:50]}...")
+            detail_info = scrape_sahibinden_detail(driver, listing["url"])
+            
+            # Detay bilgilerini ana listing'e ekle
+            listing.update(detail_info)
+            
+            # Kısa bir bekleme (rate limiting)
+            time.sleep(random.uniform(1, 2))
+    
+    return listings

@@ -11,7 +11,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 import requests
-from scraperHelpers import check_stock_zara, check_stock_bershka, check_stock_stradivarius
+from scraperHelpers import check_stock_zara, check_stock_bershka, check_stock_stradivarius, scrape_sahibinden_list, scrape_sahibinden_list_with_details
 
 def load_config():
     """Config dosyasını yükle"""
@@ -182,7 +182,7 @@ def check_single_item(driver, item, telegram_enabled, bot_api, chat_id, config):
         
         size_in_stock = None
         
-        # Store'a göre stok kontrolü - timeout'a karşı robust error handling
+        # Store'a göre stok kontrolü veya liste çekme - timeout'a karşı robust error handling
         try:
             if store == "zara":
                 size_in_stock = check_stock_zara(driver, sizes_to_check)
@@ -190,6 +190,64 @@ def check_single_item(driver, item, telegram_enabled, bot_api, chat_id, config):
                 size_in_stock = check_stock_bershka(driver, sizes_to_check)
             elif store == "stradivarius":
                 size_in_stock = check_stock_stradivarius(driver, sizes_to_check)
+            elif store == "sahibinden":
+                # Sahibinden.com için liste çekme
+                # Detay bilgileri isteniyor mu kontrol et (config'den)
+                fetch_details = item.get("fetch_details", False)
+                max_details = item.get("max_details", 5)  # Varsayılan 5 ilan
+                
+                if fetch_details:
+                    listings = scrape_sahibinden_list_with_details(driver, max_details=max_details)
+                else:
+                    listings = scrape_sahibinden_list(driver)
+                
+                if listings:
+                    # Liste bulundu, Telegram'a gönder
+                    listings_text_parts = []
+                    for listing in listings[:10]:  # İlk 10 ilanı göster
+                        listing_line = f"• <b>{listing.get('title', 'N/A')}</b>\n"
+                        listing_line += f"  💰 {listing.get('price', 'N/A')} | 📍 {listing.get('location', 'N/A').replace(chr(10), ' ')}\n"
+                        
+                        # Detay bilgileri varsa ekle
+                        detail_parts = []
+                        if listing.get('model_year'):
+                            detail_parts.append(f"📅 {listing.get('model_year')}")
+                        if listing.get('kilometer'):
+                            detail_parts.append(f"🛣️ {listing.get('kilometer')}")
+                        if listing.get('transmission'):
+                            detail_parts.append(f"⚙️ {listing.get('transmission')}")
+                        if listing.get('fuel_type'):
+                            detail_parts.append(f"⛽ {listing.get('fuel_type')}")
+                        
+                        if detail_parts:
+                            listing_line += f"  {' | '.join(detail_parts)}\n"
+                        
+                        listing_line += f"  🔗 <a href='{listing.get('url', 'N/A')}'>Detay</a>"
+                        listings_text_parts.append(listing_line)
+                    
+                    listings_text = "\n\n".join(listings_text_parts)
+                    
+                    message = f"📋 <b>Sahibinden.com İlan Listesi</b>\n\n" \
+                             f"👤 Kişi: <b>{person}</b>\n" \
+                             f"🔗 <a href='{url}'>Arama Linki</a>\n" \
+                             f"📊 Toplam İlan: <b>{len(listings)}</b>\n\n" \
+                             f"<b>İlk 10 İlan:</b>\n\n{listings_text}\n\n" \
+                             f"⏰ Zaman: {time.strftime('%H:%M:%S')}"
+                    
+                    print(f"📋 Found {len(listings)} listings from sahibinden.com")
+                    
+                    if telegram_enabled:
+                        send_telegram_message(message, bot_api, chat_id)
+                    
+                    # Liste bulundu, config'den çıkar (isteğe bağlı)
+                    removed = remove_item_from_config(config, item)
+                    if removed:
+                        print(f"🗑️ Removed sahibinden.com item from config")
+                    
+                    return True
+                else:
+                    print(f"❌ No listings found on sahibinden.com")
+                    return False
             else:
                 print(f"❌ Unsupported store: {store}")
                 return False

@@ -39,6 +39,28 @@
         "S"
       ],
       "person": "Gülsüm"
+    },
+    {
+      "store": "sahibinden",
+      "url": "https://www.sahibinden.com/audi",
+      "sizes": [],
+      "person": "Örnek",
+      "fetch_details": false
+    },
+    {
+      "store": "sahibinden",
+      "url": "https://www.sahibinden.com/bmw",
+      "sizes": [],
+      "person": "Örnek Detaylı",
+      "fetch_details": true,
+      "max_details": 5
+    },
+    {
+      "store": "sahibinden",
+      "url": "https://www.sahibinden.com/audi-a3",
+      "sizes": [],
+      "person": "Audi A3 Takip",
+      "fetch_details": false
     }
   ],
   "sleep_min_seconds": 60,

@@ -24,6 +24,9 @@ jobs:
     permissions:
       contents: write  # Git commit + push permissions
     
+    # Sahibinden branch'inde çalışma - sadece main branch'inde çalışsın
+    if: github.ref_name == 'main'
+    
     steps:
     - name: ⚡ Checkout (sparse)
       uses: actions/checkout@v4
