@@ -32,13 +32,21 @@ cart_status = {item["url"]: False for item in urls_to_check}
 load_dotenv()
 BOT_API = os.getenv("BOT_API")
 CHAT_ID = os.getenv("CHAT_ID")
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 # Foolproof for not having .env and bot installed: 
-if not BOT_API or not CHAT_ID:
-    print("BOT_API or CHAT_ID not found in .env file. Telegram messages will be disabled.")
-    TELEGRAM_ENABLED = False
-else:
+TELEGRAM_ENABLED = False
+if BOT_API and CHAT_ID:
     TELEGRAM_ENABLED = True
+else:
+    print("BOT_API or CHAT_ID not found in .env file. Telegram messages will be disabled.")
+
+DISCORD_ENABLED = False
+if DISCORD_WEBHOOK_URL:
+    DISCORD_ENABLED = True
+    print("Discord Webhook found. Discord messages will be enabled.")
+else:
+    print("DISCORD_WEBHOOK_URL not found in .env file. Discord messages will be disabled.")
 
 # This fcn is for notification sound
 def play_sound(sound_file):
@@ -68,6 +76,24 @@ def send_telegram_message(message):
         print("Telegram message sent.")
     except requests.exceptions.RequestException as e:
         print(f"Failed to send Telegram message: {e}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to send Telegram message: {e}")
+
+# This fcn is for sending Discord messages
+def send_discord_message(message):
+    if not DISCORD_ENABLED:
+        return
+
+    payload = {
+        "content": message
+    }
+    try:
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
+        response.raise_for_status()
+        print("Discord message sent.")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to send Discord message: {e}")
 
 while True:
     # Crate service & initialize
@@ -106,6 +132,7 @@ while True:
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            send_discord_message(message)
                             cart_status[url] = True
                         else:
                             print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
@@ -116,6 +143,7 @@ while True:
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            send_discord_message(message)
                             cart_status[url] = True
                         else:
                             print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
@@ -126,6 +154,7 @@ while True:
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            send_discord_message(message)
                             cart_status[url] = True
                         else:
                             print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
