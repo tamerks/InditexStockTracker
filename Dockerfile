@@ -1,6 +1,9 @@
 # Use official Python image
 FROM python:3.9-slim
 
+# Disable Python output buffering (so logs appear in real-time)
+ENV PYTHONUNBUFFERED=1
+
 # Install system dependencies (Chrome + utilities)
 RUN apt-get update && apt-get install -y \
     wget \
