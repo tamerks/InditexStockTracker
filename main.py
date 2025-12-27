@@ -4,7 +4,12 @@ import random
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-import pygame
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+except ImportError:
+    PYGAME_AVAILABLE = False
+    print("Pygame not properly installed. Audio alerts will be disabled.")
 from webdriver_manager.chrome import ChromeDriverManager
 from dotenv import load_dotenv
 import os
@@ -18,7 +23,8 @@ urls_to_check = config["urls"]
 sleep_min_seconds = config["sleep_min_seconds"]
 sleep_max_seconds = config["sleep_max_seconds"]
 
-pygame.mixer.init()
+if PYGAME_AVAILABLE:
+    pygame.mixer.init()
 
 cart_status = {item["url"]: False for item in urls_to_check}
 
@@ -36,8 +42,14 @@ else:
 
 # This fcn is for notification sound
 def play_sound(sound_file):
-    pygame.mixer.music.load(sound_file)
-    pygame.mixer.music.play()
+    if not PYGAME_AVAILABLE:
+        print(f"🎵 (Audio disabled) Sound alert would play: {sound_file}")
+        return
+    try:
+        pygame.mixer.music.load(sound_file)
+        pygame.mixer.music.play()
+    except Exception as e:
+        print(f"Error playing sound: {e}")
 
 # This fcn is for sending messages
 def send_telegram_message(message):
@@ -94,6 +106,7 @@ while True:
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            cart_status[url] = True
                         else:
                             print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
                     elif store == "bershka":
@@ -103,6 +116,7 @@ while True:
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            cart_status[url] = True
                         else:
                             print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
                     elif store == "stradivarius":
@@ -112,6 +126,7 @@ while True:
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            cart_status[url] = True
                         else:
                             print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
                     else:

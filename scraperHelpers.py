@@ -16,8 +16,9 @@ def check_stock_zara(driver, sizes_to_check):
     try:
         # GitHub Actions için daha kısa timeout
         is_github_actions = os.getenv('GITHUB_ACTIONS')
-        timeout = 10 if is_github_actions else 60
+        timeout = 10 if is_github_actions else 20
         wait = WebDriverWait(driver, timeout)
+
 
         # Close the cookie alert if it appears
         try:
@@ -31,6 +32,7 @@ def check_stock_zara(driver, sizes_to_check):
 
         # Wait for "Add to Cart" button to be clickable
         try:
+            print("Looking for 'Add to Cart' button...")
             add_to_cart_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-qa-action='add-to-cart']")))
 
             # Check if an overlay is blocking the button
@@ -42,8 +44,11 @@ def check_stock_zara(driver, sizes_to_check):
             # Click "Add to Cart" using JavaScript to bypass any hidden overlays
             driver.execute_script("arguments[0].click();", add_to_cart_button)
             print("Clicked 'Add to Cart' button.")
-        except (TimeoutException, ElementClickInterceptedException) as e:
-            print(f"Failed to click 'Add to Cart' button: {e}")
+        except TimeoutException:
+            print("Add to cart button not found (Product might be OOS or removed).")
+            return None
+        except ElementClickInterceptedException as e:
+            print(f"Could not click 'Add to Cart' button: {e}")
             return None
 
         # Wait for the size selector to appear
@@ -131,7 +136,12 @@ def check_stock_bershka(driver, sizes_to_check):
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "ul[data-qa-anchor='productDetailSize']")))
 
         # Allow extra time for dynamic class updates to finish
-        time.sleep(3)  # Give JS time to update classes (can be adjusted or replaced by smarter wait below)
+        # Allow extra time for dynamic class updates to finish
+        try:
+            wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button[data-qa-anchor='sizeListItem']")))
+        except TimeoutException:
+            print("Size elements did not appear in time.")
+            return None
 
         size_buttons = driver.find_elements(By.CSS_SELECTOR, "button[data-qa-anchor='sizeListItem']")
         sizes_found = {size: False for size in sizes_to_check}
@@ -181,7 +191,7 @@ def check_stock_stradivarius(driver, sizes_to_check):
     try:
         # GitHub Actions için optimize edilmiş timeout
         is_github_actions = os.getenv('GITHUB_ACTIONS')
-        timeout = 10 if is_github_actions else 60
+        timeout = 10 if is_github_actions else 20
         wait = WebDriverWait(driver, timeout)
         
         # Close the cookie alert if it appears
@@ -226,7 +236,10 @@ def check_stock_stradivarius(driver, sizes_to_check):
 
         # Wait for the size selector to appear
         print("Waiting for sizes to appear...")
-        time.sleep(2)  # Give some time for size selector to load
+        # Wait for the size selector to appear
+        print("Waiting for sizes to appear...")
+        # Replaced static sleep with dynamic wait logic below
+
         
         # Try different size selector patterns for Stradivarius
         size_selectors = [
