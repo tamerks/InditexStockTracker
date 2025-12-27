@@ -32,7 +32,35 @@ cart_status = {item["url"]: False for item in urls_to_check}
 load_dotenv()
 BOT_API = os.getenv("BOT_API")
 CHAT_ID = os.getenv("CHAT_ID")
+BOT_API = os.getenv("BOT_API")
+CHAT_ID = os.getenv("CHAT_ID")
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+LANGUAGE = os.getenv("LANGUAGE", "en")
+
+MESSAGES = {
+    "en": {
+        "stock_found": "🛍️ {size} size in stock!!!!\n👤Person: {person}\nLink: {url}",
+        "person_unknown": "Unknown",
+        "checking": "For url {url} ({person}):",
+        "no_stock": "Checked {url} - no stock found for sizes {sizes}.",
+        "store_not_supported": "Store not supported",
+        "error": "An error occurred with URL {url}: {error}"
+    },
+    "tr": {
+        "stock_found": "🛍️{size} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}",
+        "person_unknown": "Bilinmeyen",
+        "checking": "Url {url} için ({person}): ",
+        "no_stock": "Checked {url} - no stock found for sizes {sizes}.",
+        "store_not_supported": "Store not supported",
+        "error": "An error occurred with URL {url}: {error}"
+    }
+}
+
+# Fallback to English if language not found
+if LANGUAGE not in MESSAGES:
+    LANGUAGE = "en"
+
+t = MESSAGES[LANGUAGE]
 
 # Foolproof for not having .env and bot installed: 
 TELEGRAM_ENABLED = False
@@ -120,48 +148,48 @@ while True:
                     url = item.get("url")
                     store = item.get("store")
                     sizes_to_check = item.get("sizes", [])
-                    person = item.get("person", "Bilinmeyen")
+                    person = item.get("person", t["person_unknown"])
                     driver.get(url)
                     print("--------------------------------")
-                    print(f"Url {url} için ({person}): ")
+                    print(t["checking"].format(url=url, person=person))
                     if store == "zara":
                         # Check stock for the specified sizes
                         size_in_stock = check_stock_zara(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
+                            message = t["stock_found"].format(size=size_in_stock, person=person, url=url)
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
                             send_discord_message(message)
                             cart_status[url] = True
                         else:
-                            print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
+                            print(t["no_stock"].format(url=url, sizes=', '.join(sizes_to_check)))
                     elif store == "bershka":
                         size_in_stock = check_stock_bershka(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
+                            message = t["stock_found"].format(size=size_in_stock, person=person, url=url)
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
                             send_discord_message(message)
                             cart_status[url] = True
                         else:
-                            print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
+                            print(t["no_stock"].format(url=url, sizes=', '.join(sizes_to_check)))
                     elif store == "stradivarius":
                         size_in_stock = check_stock_stradivarius(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
+                            message = t["stock_found"].format(size=size_in_stock, person=person, url=url)
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
                             send_discord_message(message)
                             cart_status[url] = True
                         else:
-                            print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
+                            print(t["no_stock"].format(url=url, sizes=', '.join(sizes_to_check)))
                     else:
-                        print("Store not supported")
+                        print(t["store_not_supported"])
             except Exception as e:
-                print(f"An error occurred with URL {url}: {e}")
+                print(t["error"].format(url=url, error=e))
     finally:
         print("Closing the browser...")
         driver.quit()
