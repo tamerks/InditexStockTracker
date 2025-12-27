@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  inditex-tracker:
+    build: .
+    container_name: inditex_stock_tracker
+    restart: unless-stopped
+    volumes:
+      # Mount config so you can edit it without rebuilding
+      - ./config.json:/app/config.json
+    env_file:
+      - .env
+    environment:
+      # Optional overrides
+      - LANGUAGE=en
