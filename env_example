@@ -1,0 +1,4 @@
+BOT_API=your_token
+CHAT_ID=your_id
+DISCORD_WEBHOOK_URL=your_discord_webhook_url_here
+LANGUAGE=en

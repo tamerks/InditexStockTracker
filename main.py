@@ -4,7 +4,12 @@ import random
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-import pygame
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+except ImportError:
+    PYGAME_AVAILABLE = False
+    print("Pygame not properly installed. Audio alerts will be disabled.")
 from webdriver_manager.chrome import ChromeDriverManager
 from dotenv import load_dotenv
 import os
@@ -18,7 +23,8 @@ urls_to_check = config["urls"]
 sleep_min_seconds = config["sleep_min_seconds"]
 sleep_max_seconds = config["sleep_max_seconds"]
 
-pygame.mixer.init()
+if PYGAME_AVAILABLE:
+    pygame.mixer.init()
 
 cart_status = {item["url"]: False for item in urls_to_check}
 
@@ -26,18 +32,60 @@ cart_status = {item["url"]: False for item in urls_to_check}
 load_dotenv()
 BOT_API = os.getenv("BOT_API")
 CHAT_ID = os.getenv("CHAT_ID")
+BOT_API = os.getenv("BOT_API")
+CHAT_ID = os.getenv("CHAT_ID")
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+LANGUAGE = os.getenv("LANGUAGE", "en")
+
+MESSAGES = {
+    "en": {
+        "stock_found": "🛍️ {size} size in stock!!!!\n👤Person: {person}\nLink: {url}",
+        "person_unknown": "Unknown",
+        "checking": "For url {url} ({person}):",
+        "no_stock": "Checked {url} - no stock found for sizes {sizes}.",
+        "store_not_supported": "Store not supported",
+        "error": "An error occurred with URL {url}: {error}"
+    },
+    "tr": {
+        "stock_found": "🛍️{size} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}",
+        "person_unknown": "Bilinmeyen",
+        "checking": "Url {url} için ({person}): ",
+        "no_stock": "Checked {url} - no stock found for sizes {sizes}.",
+        "store_not_supported": "Store not supported",
+        "error": "An error occurred with URL {url}: {error}"
+    }
+}
+
+# Fallback to English if language not found
+if LANGUAGE not in MESSAGES:
+    LANGUAGE = "en"
+
+t = MESSAGES[LANGUAGE]
 
 # Foolproof for not having .env and bot installed: 
-if not BOT_API or not CHAT_ID:
-    print("BOT_API or CHAT_ID not found in .env file. Telegram messages will be disabled.")
-    TELEGRAM_ENABLED = False
-else:
+TELEGRAM_ENABLED = False
+if BOT_API and CHAT_ID:
     TELEGRAM_ENABLED = True
+else:
+    print("BOT_API or CHAT_ID not found in .env file. Telegram messages will be disabled.")
+
+DISCORD_ENABLED = False
+if DISCORD_WEBHOOK_URL:
+    DISCORD_ENABLED = True
+    print("Discord Webhook found. Discord messages will be enabled.")
+else:
+    print("DISCORD_WEBHOOK_URL not found in .env file. Discord messages will be disabled.")
 
 # This fcn is for notification sound
 def play_sound(sound_file):
-    pygame.mixer.music.load(sound_file)
-    pygame.mixer.music.play()
+    if not PYGAME_AVAILABLE:
+        print(f"🎵 (Audio disabled) Sound alert would play: {sound_file}")
+        return
+    try:
+        pygame.mixer.music.load(sound_file)
+        pygame.mixer.music.play()
+    except Exception as e:
+        print(f"Error playing sound: {e}")
 
 # This fcn is for sending messages
 def send_telegram_message(message):
@@ -56,6 +104,24 @@ def send_telegram_message(message):
         print("Telegram message sent.")
     except requests.exceptions.RequestException as e:
         print(f"Failed to send Telegram message: {e}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to send Telegram message: {e}")
+
+# This fcn is for sending Discord messages
+def send_discord_message(message):
+    if not DISCORD_ENABLED:
+        return
+
+    payload = {
+        "content": message
+    }
+    try:
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
+        response.raise_for_status()
+        print("Discord message sent.")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to send Discord message: {e}")
 
 while True:
     # Crate service & initialize
@@ -82,42 +148,48 @@ while True:
                     url = item.get("url")
                     store = item.get("store")
                     sizes_to_check = item.get("sizes", [])
-                    person = item.get("person", "Bilinmeyen")
+                    person = item.get("person", t["person_unknown"])
                     driver.get(url)
                     print("--------------------------------")
-                    print(f"Url {url} için ({person}): ")
+                    print(t["checking"].format(url=url, person=person))
                     if store == "zara":
                         # Check stock for the specified sizes
                         size_in_stock = check_stock_zara(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
+                            message = t["stock_found"].format(size=size_in_stock, person=person, url=url)
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            send_discord_message(message)
+                            cart_status[url] = True
                         else:
-                            print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
+                            print(t["no_stock"].format(url=url, sizes=', '.join(sizes_to_check)))
                     elif store == "bershka":
                         size_in_stock = check_stock_bershka(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
+                            message = t["stock_found"].format(size=size_in_stock, person=person, url=url)
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            send_discord_message(message)
+                            cart_status[url] = True
                         else:
-                            print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
+                            print(t["no_stock"].format(url=url, sizes=', '.join(sizes_to_check)))
                     elif store == "stradivarius":
                         size_in_stock = check_stock_stradivarius(driver, sizes_to_check)
                         if size_in_stock:
-                            message = f"🛍️{size_in_stock} beden stokta!!!!\n👤Kişi: {person}\nLink: {url}"
+                            message = t["stock_found"].format(size=size_in_stock, person=person, url=url)
                             print(f"ALERT: {message}")
                             play_sound('Crystal.mp3')
                             send_telegram_message(message)
+                            send_discord_message(message)
+                            cart_status[url] = True
                         else:
-                            print(f"Checked {url} - no stock found for sizes {', '.join(sizes_to_check)}.")
+                            print(t["no_stock"].format(url=url, sizes=', '.join(sizes_to_check)))
                     else:
-                        print("Store not supported")
+                        print(t["store_not_supported"])
             except Exception as e:
-                print(f"An error occurred with URL {url}: {e}")
+                print(t["error"].format(url=url, error=e))
     finally:
         print("Closing the browser...")
         driver.quit()

@@ -2,4 +2,6 @@ selenium==4.11.2
 webdriver-manager
 requests
 certifi
-urllib3
+urllib3<2.0
+
+python-dotenv
