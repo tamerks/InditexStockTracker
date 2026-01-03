@@ -13,9 +13,3 @@ services:
     environment:
       # Optional overrides
       - LANGUAGE=en
-    networks:
-      - proxy
-
-networks:
-  proxy:
-    external: true
