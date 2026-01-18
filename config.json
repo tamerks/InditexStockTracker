@@ -39,6 +39,31 @@
         "S"
       ],
       "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/faux-leather-jacket-with-detachable-collar-p04341853.html?v1=484259704",
+      "sizes": [
+        "S",
+        "XS"
+      ],
+      "person": "Şule"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/stiletto-heel-ankle-boots-with-buckle-p13101710.html?v1=495698488",
+      "sizes": [
+        "39"
+      ],
+      "person": "Şule"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/wool-blend-cape-coat-zw-collection-p08491257.html?v1=452723299",
+      "sizes": [
+        "XS"
+      ],
+      "person": "Şule"
     }
   ],
   "sleep_min_seconds": 60,
