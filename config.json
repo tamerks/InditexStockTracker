@@ -64,6 +64,62 @@
         "39"
       ],
       "person": "Şule"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/faux-fur-strap-high-heel-sandals-p13320610.html",
+      "sizes": [
+        "36"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/zw-collection-limited-edition-embroidered-dress-p07521288.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/long-satin-halter-dress-p09899332.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/shiny-mesh-halter-midi-dress-p04772264.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/dress-with-sheer-details-p02180238.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/sequinned-halter-dress-p01223452.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/text-zip-up-sweatshirt-p05584002.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
     }
   ],
   "sleep_min_seconds": 60,
