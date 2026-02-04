@@ -59,6 +59,14 @@
     },
     {
       "store": "zara",
+      "url": "https://www.zara.com/tr/en/stiletto-heel-ankle-boots-with-buckle-p13101710.html?v1=495698488",
+      "sizes": [
+        "39"
+      ],
+      "person": "Şule"
+    },
+    {
+      "store": "zara",
       "url": "https://www.zara.com/tr/en/faux-fur-strap-high-heel-sandals-p13320610.html",
       "sizes": [
         "36"
@@ -92,6 +100,22 @@
     {
       "store": "zara",
       "url": "https://www.zara.com/tr/en/dress-with-sheer-details-p02180238.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/sequinned-halter-dress-p01223452.html",
+      "sizes": [
+        "S"
+      ],
+      "person": "Gülsüm"
+    },
+    {
+      "store": "zara",
+      "url": "https://www.zara.com/tr/en/text-zip-up-sweatshirt-p05584002.html",
       "sizes": [
         "S"
       ],
