@@ -1,21 +1,8 @@
 name: ⚡ Super Fast Stock Checker
 
 on:
-  schedule:
-    # Her 5 dakikada bir - GitHub Actions minimum limit
-    - cron: '*/5 * * * *'
-  
-  # Manuel çalıştırma için
+  # Sadece manuel tetikleme aktif - otomatik çalışma devre dışı
   workflow_dispatch:
-
-  # Test için push event'i 
-  push:
-    branches: [ main ]
-    paths: 
-      - 'main_github.py'
-      - 'scraperHelpers.py'
-      - 'config.json'
-      - '.github/workflows/*.yml'
 
 jobs:
   super-fast-stock-check:
